@@ -160,7 +160,6 @@ function applyCardSelectable(el: HTMLDivElement, uid: string, mini = false): voi
   if (value === null) return;
   el.classList.add('selectable');
   if (pr.kind === 'multi' && isMultiSelected(value)) el.classList.add('selected');
-  el.title = `${el.title}\n（點擊即可選擇）`;
   el.onclick = () => handleCardPromptClick(pr, value);
 }
 
@@ -181,8 +180,6 @@ function render(): void {
   $('#cnt-deck').textContent = String(st.deckCount);
   $('#cnt-discard').textContent = String(st.discardCount);
   $('#cnt-nursery').textContent = String(st.nurseryCount);
-  $('#deck-num').textContent = String(st.deckCount);
-  $('#nursery-num').textContent = String(st.nurseryCount);
   $('#win-target').textContent = String(st.winTarget);
 
   const cur = st.players[st.turn];
@@ -232,7 +229,9 @@ function cardEl(uid: string, mini = false): HTMLDivElement {
   const def = CARD_MAP.get(uid.split('#')[0]!)!;
   const el = document.createElement('div');
   el.className = `${mini ? 'card-mini' : 'card'} t-${def.type}`;
-  el.title = `${def.name}\n${def.text}`;
+  el.dataset.tipName = `${def.nameZh}`;
+  el.dataset.tipEn = `${typeBadge(def)} · ${def.name}`;
+  el.dataset.tipText = def.text;
   el.innerHTML = mini
     ? `<div class="art">${cardArt(def)}</div><span class="zh">${def.nameZh}</span>`
     : `<span class="badge">${typeBadge(def)}</span><div class="art">${cardArt(def)}</div><span class="zh">${def.nameZh}</span><span class="en">${def.name}</span>`;
@@ -331,6 +330,17 @@ function renderMyArea(v: ServerView, isMyTurn: boolean): void {
     v.state.playsLeft > 0 &&
     !v.state.prompt &&
     !v.state.neighWindow;
+  S.canDrawInstead = canPlayNow;
+  const drawSlot = $('#draw-slot');
+  drawSlot.innerHTML = '';
+  if (S.canDrawInstead) {
+    const b = document.createElement('button');
+    b.className = 'btn small';
+    b.style.marginLeft = '8px';
+    b.textContent = '🎴 改為抽一張牌';
+    b.onclick = () => send({ t: 'action', a: 'draw_instead' });
+    drawSlot.appendChild(b);
+  }
   const hand = $('#my-hand');
   hand.innerHTML = '';
   for (const uid of me.hand ?? []) {
@@ -355,9 +365,6 @@ function renderMyArea(v: ServerView, isMyTurn: boolean): void {
     };
     hand.appendChild(el);
   }
-
-  // 抽牌代替按鈕（放在 prompt bar 前由 renderPrompt 處理）
-  S.canDrawInstead = canPlayNow;
 }
 
 function playHandCard(uid: string, type: string, _v: ServerView): void {
@@ -387,15 +394,11 @@ function renderPrompt(v: ServerView): void {
   if (!pr) {
     bar.classList.add('hidden');
     S.lastPromptId = '';
-    if (S.canDrawInstead) {
-      bar.classList.remove('hidden');
-      bar.innerHTML = `<span class="ptitle">🌟 你的行動階段：直接點擊下方發光的手牌打出，或改為抽牌</span>`;
-      const b = document.createElement('button');
-      b.className = 'btn small primary';
-      b.textContent = '🎴 改為抽一張牌';
-      b.onclick = () => send({ t: 'action', a: 'draw_instead' });
-      bar.appendChild(b);
-    }
+    return;
+  }
+  // 行動階段：不出黃色框，改用發光手牌＋手牌區的抽牌按鈕
+  if (pr.options.some((o) => o.value === '__draw')) {
+    bar.classList.add('hidden');
     return;
   }
   if (pr.playerId !== v.youId) {
@@ -536,6 +539,41 @@ function renderEndBanner(v: ServerView): void {
   document.body.appendChild(div);
   div.querySelector('#btn-again')!.addEventListener('click', () => send({ t: 'action', a: 'restart' }));
 }
+
+// ── 可愛風提示框 ─────────────────────────────────────────
+const tipBox = document.createElement('div');
+tipBox.id = 'uu-tip';
+tipBox.classList.add('hidden');
+document.body.appendChild(tipBox);
+
+function positionTip(ev: MouseEvent): void {
+  const pad = 16;
+  const r = tipBox.getBoundingClientRect();
+  let x = ev.clientX + pad;
+  let y = ev.clientY + pad;
+  if (x + r.width > window.innerWidth - 8) x = ev.clientX - r.width - pad;
+  if (y + r.height > window.innerHeight - 8) y = ev.clientY - r.height - pad;
+  tipBox.style.left = `${x}px`;
+  tipBox.style.top = `${y}px`;
+}
+
+document.addEventListener('mouseover', (ev) => {
+  const t = (ev.target as HTMLElement).closest?.('[data-tip-name]') as HTMLElement | null;
+  if (!t) {
+    tipBox.classList.add('hidden');
+    return;
+  }
+  const ds = t.dataset;
+  tipBox.innerHTML = `<div class="tt-name">${escapeHtml(ds.tipName ?? '')}</div><div class="tt-en">${escapeHtml(ds.tipEn ?? '')}</div><div class="tt-text">${escapeHtml(ds.tipText ?? '')}</div>`;
+  tipBox.classList.remove('hidden');
+  positionTip(ev);
+});
+document.addEventListener('mousemove', (ev) => {
+  if (!tipBox.classList.contains('hidden')) positionTip(ev);
+});
+document.addEventListener('mouseout', (ev) => {
+  if ((ev.target as HTMLElement).closest?.('[data-tip-name]')) tipBox.classList.add('hidden');
+});
 
 // ── 啟動 ─────────────────────────────────────────────────
 $('#chat-form').addEventListener('submit', (ev) => {
