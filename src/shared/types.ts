@@ -63,6 +63,7 @@ export interface Resolution {
 export interface NeighWindow {
   chain: { uid: string; byId: string }[]; // chain[0] = 原始卡，其後為回應的瞬間卡
   awaiting: string[];    // 尚未表態的玩家 id
+  openedAt: number;      // 開啟時間（逾時自動通過用）
 }
 
 export interface LogEntry {

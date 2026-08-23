@@ -294,12 +294,21 @@ export class Engine {
       this.respondersFor(byId).length > 0;
 
     if (canNeigh) {
-      this.s.neighWindow = { chain: [{ uid, byId }], awaiting: this.respondersFor(byId) };
+      this.s.neighWindow = { chain: [{ uid, byId }], awaiting: this.respondersFor(byId), openedAt: Date.now() };
       this.log('—— 是否要 Neigh？——', 'neigh');
     } else {
       this.applyPlayedCard(byId, uid);
     }
     return null;
+  }
+
+  expireNeighWindow(): void {
+    const w = this.s.neighWindow;
+    if (!w || !w.openedAt) return;
+    if (Date.now() - w.openedAt < 12000) return;
+    this.log('超過 12 秒無人回應，自動全部通過', 'sys');
+    w.awaiting = [];
+    this.resolveWindow();
   }
 
   neighResponse(playerId: string, uid?: string): string | null {
@@ -323,6 +332,7 @@ export class Engine {
       this.resolveWindow();
     } else {
       w.awaiting = this.respondersFor(playerId);
+      w.openedAt = Date.now();
       if (w.awaiting.length === 0) this.resolveWindow();
     }
     this.advance();
@@ -791,6 +801,12 @@ export class Engine {
       if (this.s.prompt) return '請先完成當前選擇';
       return this.neighResponse(pid, act.uid);
     }
+    if (act.a === 'restart') {
+      const me = this.player(pid);
+      if (!me?.isHost) return '只有房主可以重新開始';
+      this.restart();
+      return null;
+    }
     if (this.s.phase !== 'playing') return '遊戲未在進行中';
     if (this.s.prompt || this.s.neighWindow) return '請先完成當前的行動';
     const me = this.player(pid);
@@ -824,12 +840,6 @@ export class Engine {
     if (act.a === 'sacrifice') {
       if (!act.uid || !me.stable.some((c) => c.uid === act.uid)) return '你沒有這張場上卡';
       return this.sacrificeCard(pid, act.uid) ? null : '犧牲失敗';
-    }
-
-    if (act.a === 'restart') {
-      if (!me.isHost) return '只有房主可以重新開始';
-      this.restart();
-      return null;
     }
 
     return '未知操作';
