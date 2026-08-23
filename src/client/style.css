@@ -285,9 +285,57 @@ input:focus { border-color: var(--pink); }
 .win-banner .confetti { font-size: 60px; animation: floaty 2s infinite; }
 @keyframes winPop { from{transform:scale(.6);opacity:0} to{transform:none;opacity:1} }
 
+/* ── 插畫與可點擊提示 ─────────────────────────────────── */
+
+.card .art, .card-mini .art {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex: 1;
+}
+.card .art svg { width: 100%; height: auto; max-height: 62px; }
+.card-mini .art svg { width: 100%; height: auto; max-height: 42px; }
+
+.card.selectable {
+  cursor: pointer;
+  outline: 3px solid var(--pink);
+  outline-offset: -2px;
+  animation: glowPulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes glowPulse {
+  from { box-shadow: 0 0 2px 1px rgba(255, 122, 184, 0.35); }
+  to   { box-shadow: 0 0 14px 5px rgba(255, 122, 184, 0.55); }
+}
+.card.selectable:hover { transform: translateY(-9px) scale(1.05); }
+.card.selected { outline: 4px solid var(--purple); transform: translateY(-10px); }
+
+.card-mini.selectable {
+  cursor: pointer;
+  outline: 3px solid var(--pink);
+  outline-offset: -1px;
+  border-radius: 8px;
+}
+.card-mini.selected { outline: 3px solid var(--purple); }
+.card-mini.selectable:hover { transform: translateY(-3px); }
+
+.opponent.selectable-player {
+  cursor: pointer;
+  border-color: var(--pink);
+  animation: glowPulse 0.9s ease-in-out infinite alternate;
+}
+.opponent.selectable-player:hover { transform: translateY(-3px); background: #fff; }
+
+.pile-art { width: 72%; margin: 0 auto; }
+.pile-art svg { width: 100%; height: auto; display: block; }
+.discard-pile .mini-card.selectable { pointer-events: auto; }
+
+.phint { font-size: 11px; opacity: 0.65; width: 100%; }
+
 @media (max-width: 720px) {
   #table-mid { grid-template-columns: 1fr; }
   #log-panel { display:none; }
   .card { width: 78px; height: 112px; }
-  .card .emoji { font-size: 30px; }
+  .card .art svg { max-height: 48px; }
 }

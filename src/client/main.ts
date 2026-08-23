@@ -1,5 +1,6 @@
 import { CARD_MAP } from '../shared/cards';
 import type { ClientMsg, Prompt, PublicPlayer, ServerMsg, ServerView } from '../shared/types';
+import { cardArt, cardBackArt, trashArt, cribArt } from './art';
 
 // ── 狀態 ─────────────────────────────────────────────────
 const S = {
@@ -10,6 +11,7 @@ const S = {
   sacrificeMode: false,
   pendingMulti: [] as unknown[],
   canDrawInstead: false,
+  lastPromptId: '',
 };
 
 const $ = <T extends HTMLElement = HTMLElement>(sel: string): T => document.querySelector(sel)!;
@@ -118,6 +120,50 @@ function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 }
 
+// ── 點卡回答提示 ─────────────────────────────────────────
+function myPrompt(): Prompt | null {
+  const v = S.view;
+  const pr = v?.state.prompt;
+  return pr && v && pr.playerId === v.youId ? pr : null;
+}
+
+function optionValueForUid(pr: Prompt, uid: string): unknown | null {
+  for (const o of pr.options) {
+    if (o.value === uid) return o.value;
+    try {
+      const parsed = JSON.parse(String(o.value)) as { uid?: unknown };
+      if (parsed && typeof parsed === 'object' && parsed.uid === uid) return o.value;
+    } catch {}
+  }
+  return null;
+}
+
+function isMultiSelected(val: unknown): boolean {
+  return S.pendingMulti.some((v) => v === val);
+}
+
+function handleCardPromptClick(pr: Prompt, value: unknown): void {
+  if (pr.kind === 'multi') {
+    const i = S.pendingMulti.indexOf(value);
+    if (i >= 0) S.pendingMulti.splice(i, 1);
+    else S.pendingMulti.push(value);
+    render();
+  } else {
+    send({ t: 'action', a: 'answer', promptId: pr.id, values: [value] });
+  }
+}
+
+function applyCardSelectable(el: HTMLDivElement, uid: string, mini = false): void {
+  const pr = myPrompt();
+  if (!pr) return;
+  const value = optionValueForUid(pr, uid);
+  if (value === null) return;
+  el.classList.add('selectable');
+  if (pr.kind === 'multi' && isMultiSelected(value)) el.classList.add('selected');
+  el.title = `${el.title}\n（點擊即可選擇）`;
+  el.onclick = () => handleCardPromptClick(pr, value);
+}
+
 // ── 渲染主流程 ───────────────────────────────────────────
 function render(): void {
   const v = S.view;
@@ -145,6 +191,8 @@ function render(): void {
     st.phase === 'ended' ? '遊戲結束' : isMyTurn ? `🌟 輪到你了！（${phaseLabel(st.turnPhase)}）` : `🐴 ${cur?.name} 的回合`;
 
   renderDiscard(st.discardTop);
+  ($('.deck-pile') as HTMLElement).innerHTML = `<div class="pile-art">${cardBackArt()}</div><span>${st.deckCount}</span>`;
+  ($('.nursery-pile') as HTMLElement).innerHTML = `<div class="pile-art">${cribArt()}</div><span>${st.nurseryCount}</span>`;
   renderOpponents(st.players, st.turn);
   renderLog(st.log);
   renderMyArea(v, isMyTurn);
@@ -186,8 +234,8 @@ function cardEl(uid: string, mini = false): HTMLDivElement {
   el.className = `${mini ? 'card-mini' : 'card'} t-${def.type}`;
   el.title = `${def.name}\n${def.text}`;
   el.innerHTML = mini
-    ? `<span class="emoji">${def.emoji}</span><span class="zh">${def.nameZh}</span>`
-    : `<span class="badge">${typeBadge(def)}</span><span class="emoji">${def.emoji}</span><span class="zh">${def.nameZh}</span><span class="en">${def.name}</span>`;
+    ? `<div class="art">${cardArt(def)}</div><span class="zh">${def.nameZh}</span>`
+    : `<span class="badge">${typeBadge(def)}</span><div class="art">${cardArt(def)}</div><span class="zh">${def.nameZh}</span><span class="en">${def.name}</span>`;
   return el;
 }
 
@@ -201,30 +249,45 @@ function renderDiscard(top: string | null): void {
   if (top) {
     const c = cardEl(top, true);
     c.classList.add('mini-card');
+    applyCardSelectable(c, top, true);
     el.appendChild(c);
   } else {
-    el.append('🗑️');
+    el.innerHTML = `<div class="pile-art">${trashArt()}</div>`;
   }
 }
 
 function renderOpponents(players: PublicPlayer[], turn: number): void {
   const wrap = $('#opponents');
   wrap.innerHTML = '';
+  const pr = myPrompt();
   for (const p of players) {
+    if (p.id === S.view!.youId) continue;
     const div = document.createElement('div');
     div.className = `opponent${p.id === players[turn]?.id ? ' current' : ''}${p.connected ? '' : ' disconnected'}`;
     const unicorns = p.stable.filter((c) => ['baby', 'basic', 'magic_unicorn'].includes(CARD_MAP.get(c.uid.split('#')[0]!)!.type));
     const attaches = p.stable.filter((c) => !unicorns.includes(c));
     div.innerHTML = `
-      <h4><span>${p.isHost ? '👑 ' : ''}${escapeHtml(p.name)}${p.id === S.view!.youId ? '（你）' : ''}</span>
+      <h4><span>${p.isHost ? '👑 ' : ''}${escapeHtml(p.name)}</span>
       <span class="uni-count">🦄 ${p.unicornCount}</span></h4>
       <div class="stable-strip"></div>
       <div class="hand-note">🖐️ ${p.handCount} 張${p.handPublic && p.hand ? `：<span class="pub-hand"></span>` : ''}</div>`;
     const strip = div.querySelector('.stable-strip')!;
-    for (const c of [...attaches.slice(0, 6), ...unicorns]) strip.appendChild(cardEl(c.uid, true));
+    for (const c of [...attaches.slice(0, 6), ...unicorns]) {
+      const cel = cardEl(c.uid, true);
+      applyCardSelectable(cel, c.uid, true);
+      strip.appendChild(cel);
+    }
     if (p.handPublic && p.hand) {
       const pub = div.querySelector('.pub-hand')!;
       pub.textContent = p.hand.map((u) => CARD_MAP.get(u.split('#')[0]!)?.nameZh).join('、');
+    }
+    if (pr && pr.kind !== 'multi') {
+      const opt = pr.options.find((o) => o.value === p.id);
+      if (opt) {
+        div.classList.add('selectable-player');
+        div.title = `點擊選擇 ${p.name}`;
+        div.onclick = () => send({ t: 'action', a: 'answer', promptId: pr.id, values: [opt.value] });
+      }
     }
     wrap.appendChild(div);
   }
@@ -253,7 +316,8 @@ function renderMyArea(v: ServerView, isMyTurn: boolean): void {
   if (me.stable.length === 0) stable.innerHTML = '<span class="slot-hint">馬廄空空如也…</span>';
   for (const c of me.stable) {
     const el = cardEl(c.uid);
-    if (S.sacrificeMode) {
+    applyCardSelectable(el, c.uid);
+    if (S.sacrificeMode && !el.classList.contains('selectable')) {
       el.classList.add('sac-target');
       el.onclick = () => confirmModal(`要犧牲「${CARD_MAP.get(c.uid.split('#')[0]!)?.nameZh}」嗎？`, () => send({ t: 'action', a: 'sacrifice', uid: c.uid }));
     }
@@ -272,6 +336,11 @@ function renderMyArea(v: ServerView, isMyTurn: boolean): void {
   for (const uid of me.hand ?? []) {
     const def = CARD_MAP.get(uid.split('#')[0]!)!;
     const el = cardEl(uid);
+    applyCardSelectable(el, uid);
+    if (el.classList.contains('selectable')) {
+      hand.appendChild(el);
+      continue;
+    }
     const playable = canPlayNow && ['basic', 'magic_unicorn', 'magic', 'upgrade', 'downgrade'].includes(def.type);
     if (playable) el.classList.add('playable');
     else el.classList.add('dim');
@@ -317,9 +386,10 @@ function renderPrompt(v: ServerView): void {
   const pr = v.state.prompt;
   if (!pr) {
     bar.classList.add('hidden');
+    S.lastPromptId = '';
     if (S.canDrawInstead) {
       bar.classList.remove('hidden');
-      bar.innerHTML = `<span class="ptitle">🌟 你的行動階段：點手牌打出，或改為抽牌</span>`;
+      bar.innerHTML = `<span class="ptitle">🌟 你的行動階段：直接點擊下方發光的手牌打出，或改為抽牌</span>`;
       const b = document.createElement('button');
       b.className = 'btn small primary';
       b.textContent = '🎴 改為抽一張牌';
@@ -335,11 +405,15 @@ function renderPrompt(v: ServerView): void {
     return;
   }
 
+  if (S.lastPromptId !== pr.id) {
+    S.lastPromptId = pr.id;
+    S.pendingMulti = [];
+  }
+
   bar.classList.remove('hidden');
-  bar.innerHTML = `<span class="ptitle">👉 ${escapeHtml(pr.title)}</span>`;
+  bar.innerHTML = `<span class="ptitle">👉 ${escapeHtml(pr.title)}${promptHasCardTargets(pr) ? '<span class="phint">（也可直接點擊桌上發光的卡片）</span>' : ''}</span>`;
 
   const multi = pr.kind === 'multi';
-  S.pendingMulti = [];
   for (const opt of pr.options) {
     const b = document.createElement('button');
     b.className = 'btn small';
@@ -347,33 +421,51 @@ function renderPrompt(v: ServerView): void {
     if (!multi) {
       b.onclick = () => send({ t: 'action', a: 'answer', promptId: pr.id, values: [opt.value] });
     } else {
-      b.onclick = () => {
-        const val = opt.value;
-        const i = S.pendingMulti.indexOf(val);
-        if (i >= 0) {
-          S.pendingMulti.splice(i, 1);
-          b.classList.remove('primary');
-        } else {
-          S.pendingMulti.push(val);
-          b.classList.add('primary');
-        }
-        const need = pr.min ?? pr.max ?? 1;
-        let okBtn = bar.querySelector<HTMLButtonElement>('#multi-ok');
-        if (!okBtn) {
-          okBtn = document.createElement('button');
-          okBtn.id = 'multi-ok';
-          okBtn.className = 'btn primary';
-          okBtn.textContent = '確認';
-          bar.appendChild(okBtn);
-          okBtn.onclick = () =>
-            send({ t: 'action', a: 'answer', promptId: pr.id, values: [...S.pendingMulti] });
-        }
-        okBtn.textContent = `確認（${S.pendingMulti.length}/${need}）`;
-        okBtn.disabled = S.pendingMulti.length !== need;
-      };
+      b.onclick = () => toggleMulti(pr, opt.value, bar);
+      if (isMultiSelected(opt.value)) b.classList.add('primary');
     }
     bar.appendChild(b);
   }
+  if (multi) {
+    const need = pr.min ?? pr.max ?? 1;
+    const okBtn = document.createElement('button');
+    okBtn.className = 'btn primary';
+    okBtn.textContent = `確認（${S.pendingMulti.length}/${need}）`;
+    okBtn.disabled = S.pendingMulti.length !== need;
+    okBtn.onclick = () => send({ t: 'action', a: 'answer', promptId: pr.id, values: [...S.pendingMulti] });
+    bar.appendChild(okBtn);
+  }
+}
+
+function promptHasCardTargets(pr: Prompt): boolean {
+  return pr.options.some((o) => {
+    if (typeof o.value === 'string' && /#\d+$/.test(o.value)) return true;
+    try {
+      const p = JSON.parse(String(o.value)) as { uid?: unknown } | null;
+      return !!(p && typeof p === 'object' && p.uid);
+    } catch {
+      return false;
+    }
+  });
+}
+
+function toggleMulti(pr: Prompt, value: unknown, bar: HTMLElement): void {
+  const i = S.pendingMulti.indexOf(value);
+  if (i >= 0) S.pendingMulti.splice(i, 1);
+  else S.pendingMulti.push(value);
+  const need = pr.min ?? pr.max ?? 1;
+  bar.querySelectorAll('button').forEach((b, idx) => {
+    if (idx >= pr.options.length) return;
+    b.classList.toggle('primary', isMultiSelected(pr.options[idx]!.value));
+  });
+  const okBtn = bar.querySelector<HTMLButtonElement>('button.primary:last-child') ?? bar.lastElementChild as HTMLElement;
+  const allBtns = bar.querySelectorAll('button');
+  const confirmBtn = allBtns[allBtns.length - 1] as HTMLButtonElement;
+  if (confirmBtn) {
+    confirmBtn.textContent = `確認（${S.pendingMulti.length}/${need}）`;
+    confirmBtn.disabled = S.pendingMulti.length !== need;
+  }
+  void okBtn;
 }
 
 function renderNeighBar(v: ServerView): void {
