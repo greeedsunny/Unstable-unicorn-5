@@ -1,6 +1,7 @@
 import { CARD_MAP } from '../shared/cards';
 import type { ClientMsg, Prompt, PublicPlayer, ServerMsg, ServerView } from '../shared/types';
 import { cardArt, cardBackArt, trashArt, cribArt } from './art';
+import { CARD_IMG, TYPE_IMG } from './custom-art';
 
 // ── 狀態 ─────────────────────────────────────────────────
 const S = {
@@ -232,9 +233,13 @@ function cardEl(uid: string, mini = false): HTMLDivElement {
   el.dataset.tipName = `${def.nameZh}`;
   el.dataset.tipEn = `${typeBadge(def)} · ${def.name}`;
   el.dataset.tipText = def.text;
+  const imgUrl = CARD_IMG[def.id] ?? TYPE_IMG[def.type] ?? '';
+  const artHtml = imgUrl
+    ? `<img class="custom-img" src="${escapeHtml(imgUrl)}" alt="${escapeHtml(def.nameZh)}" loading="lazy" onerror="this.outerHTML=window.__fallbackArt('${def.id}')">`
+    : cardArt(def);
   el.innerHTML = mini
-    ? `<div class="art">${cardArt(def)}</div><span class="zh">${def.nameZh}</span>`
-    : `<span class="badge">${typeBadge(def)}</span><div class="art">${cardArt(def)}</div><span class="zh">${def.nameZh}</span><span class="en">${def.name}</span>`;
+    ? `<div class="art">${artHtml}</div><span class="zh">${def.nameZh}</span>`
+    : `<span class="badge">${typeBadge(def)}</span><div class="art">${artHtml}</div><span class="zh">${def.nameZh}</span><span class="en">${def.name}</span>`;
   return el;
 }
 
@@ -309,18 +314,35 @@ function renderMyArea(v: ServerView, isMyTurn: boolean): void {
   const me = v.state.players.find((p) => p.id === v.youId)!;
   $('#my-count').textContent = String(me.unicornCount);
 
-  // 馬廄
+  // 馬廄（分組：獨角獸／升級／降級）
   const stable = $('#my-stable');
   stable.innerHTML = '';
-  if (me.stable.length === 0) stable.innerHTML = '<span class="slot-hint">馬廄空空如也…</span>';
-  for (const c of me.stable) {
-    const el = cardEl(c.uid);
-    applyCardSelectable(el, c.uid);
-    if (S.sacrificeMode && !el.classList.contains('selectable')) {
-      el.classList.add('sac-target');
-      el.onclick = () => confirmModal(`要犧牲「${CARD_MAP.get(c.uid.split('#')[0]!)?.nameZh}」嗎？`, () => send({ t: 'action', a: 'sacrifice', uid: c.uid }));
+  if (me.stable.length === 0) {
+    stable.innerHTML = '<span class="slot-hint">馬廄空空如也…</span>';
+  } else {
+    const isUniC = (uid: string) => ['baby', 'basic', 'magic_unicorn'].includes(CARD_MAP.get(uid.split('#')[0]!)!.type);
+    const groups: { label: string; cards: typeof me.stable }[] = [
+      { label: '🦄 獨角獸', cards: me.stable.filter((c) => isUniC(c.uid)) },
+      { label: '⬆ 升級', cards: me.stable.filter((c) => CARD_MAP.get(c.uid.split('#')[0]!)!.type === 'upgrade') },
+      { label: '⬇ 降級', cards: me.stable.filter((c) => CARD_MAP.get(c.uid.split('#')[0]!)!.type === 'downgrade') },
+    ];
+    for (const g of groups) {
+      if (g.cards.length === 0) continue;
+      const sec = document.createElement('div');
+      sec.className = 'stable-group';
+      sec.innerHTML = `<div class="sg-label">${g.label} ×${g.cards.length}</div><div class="sg-row"></div>`;
+      const row = sec.querySelector('.sg-row')!;
+      for (const c of g.cards) {
+        const el = cardEl(c.uid);
+        applyCardSelectable(el, c.uid);
+        if (S.sacrificeMode && !el.classList.contains('selectable')) {
+          el.classList.add('sac-target');
+          el.onclick = () => confirmModal(`要犧牲「${CARD_MAP.get(c.uid.split('#')[0]!)?.nameZh}」嗎？`, () => send({ t: 'action', a: 'sacrifice', uid: c.uid }));
+        }
+        row.appendChild(el);
+      }
+      stable.appendChild(sec);
     }
-    stable.appendChild(el);
   }
 
   // 手牌
@@ -333,12 +355,18 @@ function renderMyArea(v: ServerView, isMyTurn: boolean): void {
   S.canDrawInstead = canPlayNow;
   const drawSlot = $('#draw-slot');
   drawSlot.innerHTML = '';
-  if (S.canDrawInstead) {
+  const actPr = myPrompt();
+  const hasDrawOpt = !!actPr && actPr.options.some((o) => o.value === '__draw');
+  if (hasDrawOpt || S.canDrawInstead) {
     const b = document.createElement('button');
     b.className = 'btn small';
     b.style.marginLeft = '8px';
     b.textContent = '🎴 改為抽一張牌';
-    b.onclick = () => send({ t: 'action', a: 'draw_instead' });
+    b.title = '結束行動階段';
+    b.onclick = () => {
+      if (actPr && hasDrawOpt) send({ t: 'action', a: 'answer', promptId: actPr.id, values: ['__draw'] });
+      else send({ t: 'action', a: 'draw_instead' });
+    };
     drawSlot.appendChild(b);
   }
   const hand = $('#my-hand');
@@ -576,6 +604,10 @@ document.addEventListener('mouseout', (ev) => {
 });
 
 // ── 啟動 ─────────────────────────────────────────────────
+(window as unknown as { __fallbackArt: (id: string) => string }).__fallbackArt = (id: string): string => {
+  const def = CARD_MAP.get(id);
+  return def ? cardArt(def) : '';
+};
 $('#chat-form').addEventListener('submit', (ev) => {
   ev.preventDefault();
   const inp = $('#chat-inp') as HTMLInputElement;

@@ -179,7 +179,17 @@ input:focus { border-color: var(--pink); }
 #my-area { display:flex; flex-direction:column; gap:4px; min-height:0; }
 #my-area h3 { font-size: 14px; }
 #my-stable-wrap { background: rgba(255,255,255,.7); border: 3px solid var(--ink); border-radius: 14px; padding: 6px 10px; }
-#my-stable { display:flex; flex-wrap:wrap; gap:6px; min-height: 66px; padding: 4px 0; }
+#my-stable { display: block; min-height: 66px; padding: 4px 0; }
+.stable-group { margin: 3px 0; }
+.sg-label { font-size: 11px; opacity: 0.6; margin: 2px 0 3px 2px; }
+.sg-row { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.card .art img.custom-img, .card-mini .art img.custom-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
 #my-stable .slot-hint { opacity:.4; font-size:13px; align-self:center; margin:auto; }
 
 #prompt-bar {
