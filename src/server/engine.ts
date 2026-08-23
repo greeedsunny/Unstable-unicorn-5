@@ -9,6 +9,7 @@ import type {
   ServerView,
 } from '../shared/types';
 import { HANDLERS } from './effects';
+import { ENTRY_REQ_BASIC } from './effects2';
 
 export function createState(): GameState {
   return {
@@ -26,6 +27,7 @@ export function createState(): GameState {
     prompt: null,
     neighWindow: null,
     riders: {},
+    lasso: {},
     log: [],
     winner: null,
     winTarget: 7,
@@ -240,6 +242,18 @@ export class Engine {
     if (t === 'instant') return this.canPlayInstant(pid);
     if (t === 'upgrade' && this.stableHas(pid, 'broken-stable')) return false;
     return true;
+  }
+
+  hasBasicUnicorn(pid: string): boolean {
+    return !!this.player(pid)?.stable.some((c) => {
+      const id = c.defId;
+      return id.startsWith('basic-') || id === 'narwhal-basic';
+    });
+  }
+
+  entryReqOk(pid: string, defId: string): boolean {
+    if (!ENTRY_REQ_BASIC.has(defId)) return true;
+    return this.hasBasicUnicorn(pid);
   }
 
   handPublic(pid: string): boolean {
@@ -488,6 +502,10 @@ export class Engine {
     const loc = this.locateStableCard(uid);
     if (!loc || loc.pid !== byId) return false;
     const d = this.defOf(uid)!;
+    if (d.id === 'puppicorn') {
+      this.log(`小狗獨角獸搖搖尾巴，拒絕被犧牲！`, 'block');
+      return false;
+    }
     this.log(`${this.nameOf(byId)} 犧牲了 ${d.nameZh}`, 'leave');
     const removed = this.removeFromStable(uid);
     if (removed) this.leaveStableDisposal(removed.owner, uid, 'sacrifice');
@@ -513,6 +531,10 @@ export class Engine {
       return false;
     }
     const d = this.defOf(uid)!;
+    if (d.id === 'puppicorn') {
+      this.log(`小狗獨角獸躲開了攻擊！`, 'block');
+      return false;
+    }
     if (d.id === 'magical-kittencorn' && byId !== loc.pid) {
       this.log(`魔法小貓獨角獸不受影響！`, 'block');
       return false;
@@ -731,6 +753,10 @@ export class Engine {
     this.s.playsLeft = 0;
     this.s.extraTurns = 0;
     this.s.turnEnded = false;
+    const pup = this.s.players.flatMap((p) => p.stable.map((c) => ({ p, c }))).find((x) => x.c.defId === 'puppicorn');
+    if (pup && pup.p.id !== this.cur().id) {
+      this.moveUnicorn(pup.p.id, pup.c.uid, this.cur().id, '小狗獨角獸蹦蹦跳跳換了馬廄');
+    }
     this.log(`—— ${this.cur().name} 的回合 ——`, 'turn');
     this.pushBack(this.makeRes('phase_start', this.cur().id));
     this.advance();
@@ -778,6 +804,7 @@ export class Engine {
       if (!d) return '找不到卡片';
       if (!me.hand.includes(act.uid!)) return '你沒有這張卡';
       if (!this.canPlayType(pid, d.type)) return '你目前不能打出這類卡';
+      if (!this.entryReqOk(pid, d.id)) return '進場需求未滿足：馬廄需有基本獨角獸';
       const err = this.initiatePlay(pid, act.uid!);
       if (!err) this.advance();
       return err;

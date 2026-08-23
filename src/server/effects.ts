@@ -61,6 +61,7 @@ export const HANDLERS: Record<string, Handler> = {
         if (!(d.type === 'basic' || d.type === 'magic_unicorn' || d.type === 'magic' || d.type === 'upgrade' || d.type === 'downgrade')) continue;
         if (!e.canPlayType(p.id, d.type)) continue;
         if (d.type === 'basic' && e.queenBeeBlocksBasicEnter(p.id)) continue;
+        if (!e.entryReqOk(p.id, d.id)) continue;
         opts.push({ label: `打出 ${d.nameZh}`, value: uid });
       }
       opts.push({ label: '改為抽一張牌', value: '__draw' });
@@ -91,6 +92,12 @@ export const HANDLERS: Record<string, Handler> = {
     if (guardEnded(e, res)) return;
     const p = e.cur();
     e.s.turnPhase = 'end';
+    for (const [uid, info] of Object.entries(e.s.lasso ?? {})) {
+      if (info.by === p.id) {
+        e.moveUnicorn(p.id, uid, info.home, '套索到期，歸還');
+        delete e.s.lasso![uid];
+      }
+    }
     const excess = p.hand.length - 7;
     if (excess > 0) {
       if (!('d' in res.data)) {

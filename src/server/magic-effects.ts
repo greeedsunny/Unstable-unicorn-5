@@ -343,6 +343,48 @@ export const MAGIC_HANDLERS: Record<string, Handler> = {
     e.done(res);
   },
 
+  'magic_unicorn-shrinkray': (e, res) => {
+    if (!('v' in res.data)) {
+      const victims = e.s.players.filter((p) => p.stable.some((c) => ['baby', 'basic', 'magic_unicorn'].includes(e.defOf(c.uid)!.type)));
+      if (victims.length === 0) {
+        e.finishMagicDiscard(res);
+        e.done(res);
+        return;
+      }
+      e.ask(res, 'v', {
+        playerId: res.playerId,
+        title: '縮小光線：射誰？',
+        options: victims.map((p) => ({ label: `${p.name}（${p.stable.filter((c) => ['baby', 'basic', 'magic_unicorn'].includes(e.defOf(c.uid)!.type)).length} 隻）`, value: p.id })),
+      });
+      return;
+    }
+    if (!('zapped' in res.data)) {
+      res.data.zapped = 1;
+      const victim = e.player(String(res.data.v))!;
+      const unicorns = victim.stable.filter((c) => ['baby', 'basic', 'magic_unicorn'].includes(e.defOf(c.uid)!.type));
+      for (const c of unicorns) {
+        victim.stable = victim.stable.filter((x) => x.uid !== c.uid);
+        const d = e.defOf(c.uid)!;
+        if (d.type === 'baby') e.s.nursery.unshift(c.uid);
+        else e.s.discard.push(c.uid);
+      }
+      const n = unicorns.length;
+      e.log(`縮小光線命中！${victim.name} 的 ${n} 隻獨角獸被縮小送走`, 'leave');
+      for (let i = 0; i < n; i++) {
+        const baby = e.s.nursery.pop();
+        if (!baby) break;
+        victim.stable.push({ uid: baby, defId: baby.split('#')[0]! });
+      }
+      if (n > 0) {
+        e.log(`${n} 隻幼獨角獸從育嬰室來到 ${victim.name} 的馬廄`, 'enter');
+        e.afterStableChange(victim.id);
+        e.checkWin();
+      }
+    }
+    e.finishMagicDiscard(res);
+    e.done(res);
+  },
+
   'magic_unicorn-swap': (e, res) => {
     if (!('mine' in res.data)) {
       const mine = e

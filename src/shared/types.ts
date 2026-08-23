@@ -88,6 +88,7 @@ export interface GameState {
   prompt: Prompt | null;        // 目前等待的輸入
   neighWindow: NeighWindow | null;
   riders: Record<string, { uid: string; pid: string }>; // Seductive Unicorn 綁定
+  lasso: Record<string, { home: string; by: string }>;  // Unicorn Lasso 借用中
   log: LogEntry[];
   winner: string | null;
   winTarget: number;

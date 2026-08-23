@@ -25,6 +25,8 @@ export class Room {
             p.connected = false;
             p.wsId = null;
           }
+          s.lasso ??= {};
+          s.riders ??= {};
           this.engine = new Engine(s);
         } catch {}
       }

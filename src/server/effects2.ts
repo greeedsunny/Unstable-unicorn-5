@@ -13,7 +13,13 @@ export const TS_TRIGGERS = new Set([
   'caffeine-overload',
   'claw-machine',
   'glitter-bomb',
+  'extra-tail',
+  'rainbow-mane',
+  'summoning-ritual',
+  'unicorn-lasso',
 ]);
+
+export const ENTRY_REQ_BASIC = new Set(['extra-tail', 'rainbow-mane', 'summoning-ritual', 'unicorn-lasso']);
 
 export function guardEnded(e: Engine, res: Resolution): boolean {
   if (e.s.phase === 'playing') return false;
@@ -407,6 +413,129 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
   };
 
   // ── 回合開始觸發 ──
+
+  HANDLERS['ts_extra-tail'] = (e, res) => {
+    if (!('go' in res.data)) {
+      e.ask(res, 'go', { playerId: res.playerId, title: '多餘尾巴：多抽 1 張牌？', options: e.ynOptions('抽牌') });
+      return;
+    }
+    if (!('done' in res.data)) {
+      res.data.done = 1;
+      if (e.isYes(res.data.go)) {
+        e.drawTo(res.playerId, 1);
+        e.log(`${e.nameOf(res.playerId)} 用多餘尾巴多抽了 1 張牌`, 'draw');
+      }
+    }
+    e.done(res);
+  };
+
+  HANDLERS['ts_rainbow-mane'] = (e, res) => {
+    if (!('go' in res.data)) {
+      if (e.handOptions(res.playerId, (d) => d.type === 'basic').length === 0) {
+        e.done(res);
+        return;
+      }
+      e.ask(res, 'go', { playerId: res.playerId, title: '彩虹鬃毛：從手中直接帶一隻基本獨角獸進馬廄？', options: e.ynOptions() });
+      return;
+    }
+    if (!e.isYes(res.data.go)) {
+      e.done(res);
+      return;
+    }
+    if (!('u' in res.data)) {
+      e.ask(res, 'u', {
+        playerId: res.playerId,
+        title: '彩虹鬃毛：選擇基本獨角獸',
+        options: e.handOptions(res.playerId, (d) => d.type === 'basic'),
+      });
+      return;
+    }
+    if (!('brought' in res.data)) {
+      res.data.brought = 1;
+      const uid = String(res.data.u);
+      const me = e.player(res.playerId)!;
+      if (me.hand.includes(uid)) {
+        me.hand = me.hand.filter((x) => x !== uid);
+        e.enterStable(res.playerId, uid);
+      }
+    }
+    e.done(res);
+  };
+
+  HANDLERS['ts_summoning-ritual'] = (e, res) => {
+    const me = e.player(res.playerId)!;
+    if (!('go' in res.data)) {
+      const canPay = me.hand.filter((u) => isUnicorn(e.defOf(u)!.type)).length >= 2;
+      const canRevive = e.discardOptions((d) => isUnicorn(d.type)).length > 0;
+      if (!canPay || !canRevive) {
+        e.done(res);
+        return;
+      }
+      e.ask(res, 'go', { playerId: res.playerId, title: '召喚儀式：棄 2 張獨角獸卡，喚回一隻？', options: e.ynOptions() });
+      return;
+    }
+    if (!e.isYes(res.data.go)) {
+      e.done(res);
+      return;
+    }
+    if (!('ds' in res.data)) {
+      e.ask(res, 'ds', {
+        playerId: res.playerId,
+        title: '召喚儀式：棄 2 張獨角獸卡',
+        kind: 'multi',
+        min: 2,
+        max: 2,
+        options: e.handOptions(res.playerId, (d) => isUnicorn(d.type)),
+      });
+      return;
+    }
+    if (!('paid' in res.data)) {
+      res.data.paid = 1;
+      e.discardUids(res.data.ds as string[]);
+    }
+    if (!('rv' in res.data)) {
+      const opts = e.discardOptions((d) => isUnicorn(d.type));
+      if (opts.length === 0) {
+        e.done(res);
+        return;
+      }
+      e.ask(res, 'rv', { playerId: res.playerId, title: '召喚儀式：喚回哪一隻？', options: opts });
+      return;
+    }
+    if (!('revived' in res.data)) {
+      res.data.revived = 1;
+      reviveFromDiscard(e, res.playerId, String(res.data.rv));
+    }
+    e.done(res);
+  };
+
+  HANDLERS['ts_unicorn-lasso'] = (e, res) => {
+    if (!('go' in res.data)) {
+      if (e.unicornOptionsAny([res.playerId]).length === 0) {
+        e.done(res);
+        return;
+      }
+      e.ask(res, 'go', { playerId: res.playerId, title: '獨角獸套索：借用一隻（回合結束歸還）？', options: e.ynOptions() });
+      return;
+    }
+    if (!e.isYes(res.data.go)) {
+      e.done(res);
+      return;
+    }
+    if (!('t' in res.data)) {
+      e.ask(res, 't', { playerId: res.playerId, title: '獨角獸套索：套哪一隻？', options: e.unicornOptionsAny([res.playerId]) });
+      return;
+    }
+    if (!('lassoed' in res.data)) {
+      res.data.lassoed = 1;
+      const c = e.parseStableChoice(res.data.t);
+      if (c && e.moveUnicorn(c.pid, c.uid, res.playerId, '套走借用')) {
+        e.s.lasso ??= {};
+        e.s.lasso[c.uid] = { home: c.pid, by: res.playerId };
+      }
+    }
+    e.done(res);
+  };
 
   HANDLERS['ts_double-dutch'] = (e, res) => {
     if (!('go' in res.data)) {

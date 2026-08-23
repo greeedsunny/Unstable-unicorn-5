@@ -380,6 +380,38 @@ export const CARDS: CardDef[] = [
     type: 'instant', emoji: '🐎', copies: 1,
     text: '同 Neigh，但不會被 Neigh 取消。',
   },
+
+  // ── 經典回歸卡（第一版）──
+  {
+    id: 'puppicorn', name: 'Puppicorn', nameZh: '小狗獨角獸',
+    type: 'magic_unicorn', emoji: '🐶', copies: 1,
+    text: '每回合開始時，牠會跑到當前行動玩家的馬廄。不能被犧牲或消滅。',
+  },
+  {
+    id: 'unicorn-shrinkray', name: 'Unicorn Shrinkray', nameZh: '獨角獸縮小光線',
+    type: 'magic', emoji: '🔬', copies: 1,
+    text: '選擇一名玩家：其馬廄的所有獨角獸直接進入棄牌堆（不觸發任何效果），然後相同數量的幼獨角獸從育嬰室進入其馬廄。',
+  },
+  {
+    id: 'extra-tail', name: 'Extra Tail', nameZh: '多餘尾巴',
+    type: 'upgrade', emoji: '🦱', copies: 3,
+    text: '進場需求：你的馬廄需有基本獨角獸。你的回合開始時：可多抽 1 張牌。',
+  },
+  {
+    id: 'rainbow-mane', name: 'Rainbow Mane', nameZh: '彩虹鬃毛',
+    type: 'upgrade', emoji: '🎠', copies: 3,
+    text: '進場需求：你的馬廄需有基本獨角獸。你的回合開始時：可從手中直接打出一隻基本獨角獸（不消耗出牌次數）。',
+  },
+  {
+    id: 'summoning-ritual', name: 'Summoning Ritual', nameZh: '召喚儀式',
+    type: 'upgrade', emoji: '📜', copies: 1,
+    text: '進場需求：你的馬廄需有基本獨角獸。你的回合開始時：可棄 2 張獨角獸卡，從棄牌堆喚回一隻獨角獸。',
+  },
+  {
+    id: 'unicorn-lasso', name: 'Unicorn Lasso', nameZh: '獨角獸套索',
+    type: 'upgrade', emoji: '🪢', copies: 1,
+    text: '進場需求：你的馬廄需有基本獨角獸。你的回合開始時：可借用另一個馬廄的一隻獨角獸，回合結束時歸還。',
+  },
 ];
 
 export const CARD_MAP = new Map(CARDS.map((c) => [c.id, c]));

@@ -1,12 +1,66 @@
 // ── 自訂卡面圖片 ──────────────────────────────────────────
-// 在 CARD_IMG 填入「卡牌 ID → 圖片網址」即可覆蓋內建插畫。
-// 卡牌 ID 見 src/shared/cards.ts（例如 'rainbow-unicorn'、'neigh'）。
-// 色系版可用 TYPE_IMG 針對整個類型設定（basic/baby/magic_unicorn/magic/instant/upgrade/downgrade）。
+// 由玩家提供之圖片網址（postimg）。載入失敗自動退回內建插畫。
 
 export const CARD_IMG: Record<string, string> = {
-  // 範例：'rainbow-unicorn': 'https://example.com/rainbow.png',
+  'alluring-narwhal': 'https://i.postimg.cc/d37thsrd/alluring.png',
+  'americorn': 'https://i.postimg.cc/C5WMD3sf/americorn.png',
+  'annoying-flying-unicorn': 'https://i.postimg.cc/prgV8wJF/annoying.png',
+  'black-knight-unicorn': 'https://i.postimg.cc/KjdcL6D3/blackknight.jpg',
+  'chainsaw-unicorn': 'https://i.postimg.cc/Y0J2g5zF/chainsaw.jpg',
+  'classy-narwhal': 'https://i.postimg.cc/Zn1Y3Gx6/classynarwhal.jpg',
+  'ginormous-unicorn': 'https://i.postimg.cc/tJLRPKNd/ginormous.jpg',
+  'greedy-flying-unicorn': 'https://i.postimg.cc/5yZ9vhSq/greedyflying.jpg',
+  'magical-flying-unicorn': 'https://i.postimg.cc/RhjCfkLL/magicalflying.jpg',
+  'majestic-flying-unicorn': 'https://i.postimg.cc/2yPjvs7w/majesticflying.jpg',
+  'mermaid-unicorn': 'https://i.postimg.cc/D0tfs9P6/mermaid.jpg',
+  'narwhal-torpedo': 'https://i.postimg.cc/brKYb793/narwhaltorpedo.jpg',
+  'puppicorn': 'https://i.postimg.cc/Vv3sMxWK/puppicorn.jpg',
+  'queen-bee-unicorn': 'https://i.postimg.cc/zv9DWsF2/queenbee.jpg',
+  'rainbow-unicorn': 'https://i.postimg.cc/BbdZDrBw/rainbow.jpg',
+  'rhinocorn': 'https://i.postimg.cc/sxtfSk4L/rhinocorn.jpg',
+  'seductive-unicorn': 'https://i.postimg.cc/j2GqNp4m/seductive.jpg',
+  'shabby-the-narwhal': 'https://i.postimg.cc/8cqkW2mx/shabby.jpg',
+  'shark-with-a-horn': 'https://i.postimg.cc/MZ4phBJx/sharkwithahorn.jpg',
+  'stabby-the-unicorn': 'https://i.postimg.cc/wxPjSNYg/stabby.jpg',
+  'swift-flying-unicorn': 'https://i.postimg.cc/xj71WmVf/swiftflying.jpg',
+  'the-great-narwhal': 'https://i.postimg.cc/NGVjWXvf/thegreatnarwhal.jpg',
+  'unicorn-on-the-cob': 'https://i.postimg.cc/3r6xPGQR/unicornonthecob.jpg',
+
+  'blinding-light': 'https://i.postimg.cc/76CPtP6R/blindinglight.jpg',
+  'broken-stable': 'https://i.postimg.cc/85FkXk59/brokenstable.jpg',
+  'nanny-cam': 'https://i.postimg.cc/tT1RvRTf/nannycam.jpg',
+  'pandamonium': 'https://i.postimg.cc/j5Wq3q5B/pandamonium.jpg',
+  'sadistic-ritual': 'https://i.postimg.cc/FRfFCFRM/sadisticritual.jpg',
+  'slowdown': 'https://i.postimg.cc/k4VMYMGr/slowdown.jpg',
+  'tiny-stable': 'https://i.postimg.cc/G2B3g3tw/tinystable.jpg',
+
+  'double-dutch': 'https://i.postimg.cc/TYSsnr5J/doubledutch.jpg',
+  'extra-tail': 'https://i.postimg.cc/X7hP9wB8/extratail.jpg',
+  'glitter-bomb': 'https://i.postimg.cc/NfVnR12b/glitterbomb.jpg',
+  'rainbow-aura': 'https://i.postimg.cc/MK4L1yf5/rainbowaura.jpg',
+  'rainbow-mane': 'https://i.postimg.cc/yY5G0F3v/rainbowmane.jpg',
+  'summoning-ritual': 'https://i.postimg.cc/yY5G0F30/summoningritual.jpg',
+  'unicorn-lasso': 'https://i.postimg.cc/YqVPQ1Lf/unicornlasso.jpg',
+  'yay': 'https://i.postimg.cc/3J6q2g0j/yay.jpg',
+
+  'back-kick': 'https://i.postimg.cc/c1YqTkZz/backkick.jpg',
+  'blatant-thievery': 'https://i.postimg.cc/jqNVv3tV/blatantthievery.jpg',
+  'change-of-luck': 'https://i.postimg.cc/sfSFKHsd/changeofluck.jpg',
+  'glitter-tornado': 'https://i.postimg.cc/SQ80V1kp/glittertornado.jpg',
+  'good-deal': 'https://i.postimg.cc/HW5G3vdg/gooddeal.jpg',
+  'mystical-vortex': 'https://i.postimg.cc/gcR94tmd/mysticalvortex.jpg',
+  'reset-button': 'https://i.postimg.cc/G3Y0zgdL/resetbutton.jpg',
+  're-target': 'https://i.postimg.cc/X70RPKYS/retarget.jpg',
+  'shake-up': 'https://i.postimg.cc/m2Gvn3g4/shakeup.jpg',
+  'targeted-destruction': 'https://i.postimg.cc/FsQM6bHN/targeteddestruction.jpg',
+  'two-for-one': 'https://i.postimg.cc/SNpBPLxy/twoforone.jpg',
+  'unfair-bargain': 'https://i.postimg.cc/02qT4Gy5/unfairbargain.jpg',
+  'unicorn-poison': 'https://i.postimg.cc/FsQM6bHs/unicornpoison.jpg',
+  'unicorn-shrinkray': 'https://i.postimg.cc/zX1sQwGf/unicornshrinkray.jpg',
+  'unicorn-swap': 'https://i.postimg.cc/kXd0HNgG/unicornswap.jpg',
+
+  'neigh': 'https://i.postimg.cc/NMLWmYkm/neigh.jpg',
+  'super-neigh': 'https://i.postimg.cc/NMLWmYk1/UU-Ch-Co-001.png',
 };
 
-export const TYPE_IMG: Partial<Record<string, string>> = {
-  // 範例：basic: 'https://example.com/basic.png',
-};
+export const TYPE_IMG: Partial<Record<string, string>> = {};
