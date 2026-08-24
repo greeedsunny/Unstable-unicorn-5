@@ -420,6 +420,9 @@ export class Engine {
     if (!p || !d) return;
     p.stable.push({ uid, defId: d.id });
     this.log(`${d.nameZh} 進入了 ${p.name} 的馬廄`, 'enter');
+    if (isUnicorn(d.type) && this.stableHas(pid, 'barbed-wire')) {
+      this.pushFront(this.makeRes('barbed_discard', pid, {}));
+    }
     this.afterStableChange(pid);
     this.checkWin();
   }
@@ -444,9 +447,10 @@ export class Engine {
     for (const p of this.s.players) {
       const idx = p.stable.findIndex((c) => c.uid === uid);
       if (idx >= 0) {
+        const wasUnicorn = isUnicorn(this.defOf(uid)!.type);
         p.stable.splice(idx, 1);
         this.afterStableChange(p.id);
-        if (this.stableHas(p.id, 'barbed-wire')) {
+        if (wasUnicorn && this.stableHas(p.id, 'barbed-wire')) {
           this.pushFront(this.makeRes('barbed_discard', p.id, {}));
         }
         return { owner: p, uid, defId: uid.split('#')[0]! };
@@ -501,6 +505,9 @@ export class Engine {
     if (!blinded && d.id === 'unicorn-phoenix' && owner.hand.length > 0) {
       owner.stable.push({ uid, defId: d.id });
       this.log(`不死鳳凰獨角獸重生，回到 ${owner.name} 的馬廄！`, 'enter');
+      if (this.stableHas(owner.id, 'barbed-wire')) {
+        this.pushFront(this.makeRes('barbed_discard', owner.id, {}));
+      }
       this.afterStableChange(owner.id);
       return;
     }
@@ -590,10 +597,12 @@ export class Engine {
     if (!from) return false;
     const idx = from.stable.findIndex((c) => c.uid === uid);
     if (idx < 0) return false;
+    const isUni = isUnicorn(this.defOf(uid)!.type);
     const card = from.stable.splice(idx, 1)[0]!;
     this.player(toPid)?.stable.push(card);
     this.log(`${tag}：${this.defOf(uid)?.nameZh} → ${this.nameOf(toPid)} 的馬廄`, 'move');
-    if (this.stableHas(fromPid, 'barbed-wire')) this.pushFront(this.makeRes('barbed_discard', fromPid, {}));
+    if (isUni && this.stableHas(fromPid, 'barbed-wire')) this.pushFront(this.makeRes('barbed_discard', fromPid, {}));
+    if (isUni && this.stableHas(toPid, 'barbed-wire')) this.pushFront(this.makeRes('barbed_discard', toPid, {}));
     this.afterStableChange(fromPid);
     this.afterStableChange(toPid);
     this.checkWin();

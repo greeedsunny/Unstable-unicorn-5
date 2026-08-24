@@ -331,7 +331,7 @@ export const CARDS: CardDef[] = [
   {
     id: 'barbed-wire', name: 'Barbed Wire', nameZh: '有刺鐵絲網',
     type: 'downgrade', emoji: '🚧', copies: 1,
-    text: '此馬廄每次有卡進入或離開時，馬廄主人棄 1 張牌。',
+    text: '此馬廄每次有獨角獸進入或離開時（不論原因），馬廄主人棄 1 張牌。',
   },
   {
     id: 'blinding-light', name: 'Blinding Light', nameZh: '致盲強光',

@@ -142,19 +142,40 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
           : (d: CardDef) => d.name.toLowerCase().includes('narwhal');
     const label = mode === 'upgrade' ? '升級卡' : mode === 'downgrade' ? '降級卡' : '名稱含 Narwhal 的卡';
     if (!('go' in res.data)) {
-      const exists = e.s.deck.some((u) => pred(e.defOf(u)!));
-      if (!exists) {
+      const matches = e.s.deck.filter((u) => pred(e.defOf(u)!));
+      if (matches.length === 0) {
         e.done(res);
         return;
       }
-      e.ask(res, 'go', { playerId: res.playerId, title: `從牌庫搜尋一張${label}加入手牌？`, options: e.ynOptions('搜尋') });
+      e.ask(res, 'go', { playerId: res.playerId, title: `從牌庫搜尋一張${label}加入手牌？（共 ${matches.length} 張可選）`, options: e.ynOptions('搜尋') });
       return;
     }
-    if (e.isYes(res.data.go)) {
-      const uid = e.searchDeck(pred);
-      if (uid) {
+    if (!e.isYes(res.data.go)) {
+      e.done(res);
+      return;
+    }
+    if (!('pick' in res.data)) {
+      const matches = e.s.deck.filter((u) => pred(e.defOf(u)!));
+      if (matches.length === 0) {
+        e.done(res);
+        return;
+      }
+      e.ask(res, 'pick', {
+        playerId: res.playerId,
+        title: `搜尋結果：選擇一張${label}`,
+        options: matches.map((u) => ({ label: e.defOf(u)?.nameZh ?? '?', value: u })),
+      });
+      return;
+    }
+    if (!('took' in res.data)) {
+      res.data.took = 1;
+      const uid = String(res.data.pick);
+      const idx = e.s.deck.indexOf(uid);
+      if (idx >= 0) {
+        e.s.deck.splice(idx, 1);
+        shuffleLocal(e.s.deck, e.consumeRand());
         e.player(res.playerId)?.hand.push(uid);
-        e.log(`${e.nameOf(res.playerId)} 搜尋到了一張${label}`, 'draw');
+        e.log(`${e.nameOf(res.playerId)} 搜尋並選走了 ${e.defOf(uid)?.nameZh}`, 'draw');
       }
     }
     e.done(res);
@@ -538,6 +559,7 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
       if (c && e.moveUnicorn(c.pid, c.uid, res.playerId, '套走借用')) {
         e.s.lasso ??= {};
         e.s.lasso[c.uid] = { home: c.pid, by: res.playerId };
+        e.tryEntryEffect(res.playerId, c.uid);
       }
     }
     e.done(res);

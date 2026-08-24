@@ -437,4 +437,6 @@ function doSwap(e: Engine, aUid: string, bUid: string): void {
   e.afterStableChange(la.pid);
   e.afterStableChange(lb.pid);
   e.checkWin();
+  e.tryEntryEffect(lb.pid, aUid);
+  e.tryEntryEffect(la.pid, bUid);
 }

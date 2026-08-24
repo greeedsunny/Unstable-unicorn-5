@@ -1,4 +1,4 @@
-﻿import { readFileSync } from 'fs';
+import { readFileSync } from 'fs';
 
 const ROOM = process.argv[2] ?? 'SMOKE1';
 const CARDS_PATH = process.argv[3] ?? 'src/shared/cards.ts';
@@ -35,7 +35,7 @@ function mkPlayer(name) {
     }
   };
   P.ws = ws;
-  P.send = (o) => ws.send(JSON.stringify(o));
+  P.send = (o) => { if (ws.readyState === 1) ws.send(JSON.stringify(o)); };
   return P;
 }
 
@@ -150,10 +150,18 @@ async function waitActionPrompt(P, timeoutMs, dbgUid) {
 
     A.errs.length = 0;
     B.errs.length = 0;
-    A.send({ t: 'action', a: 'smoke_give', defId, token: TOKEN });
-    await sleep(400);
-    const uid = handUid(A, defId);
-    console.log(`  [give] ${defId}: uid=${uid ? uid.split('#')[1] : 'NONE'} errs=${JSON.stringify(A.errs.slice(-1))}`);
+    let uid = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      A.send({ t: 'action', a: 'smoke_give', defId, token: TOKEN });
+      await sleep(600);
+      uid = handUid(A, defId);
+      if (uid) break;
+    }
+    if (!uid) {
+      results.fail.push(`${defId} (give failed)`);
+      console.log(`FAIL ${defId}: give failed`, A.errs.slice(-1));
+      continue;
+    }
     if (!uid) {
       results.fail.push(`${defId} (give failed)`);
       console.log(`FAIL ${defId}: give failed`, A.errs.slice(-1));
@@ -208,7 +216,6 @@ async function waitActionPrompt(P, timeoutMs, dbgUid) {
     const w2 = await waitActionPrompt(A, 15000, uid);
     const prNow = w2.pr ?? myPrompt(A);
     if (!prNow || !prNow.options.some((o) => o.value === uid)) {
-      console.log(`  [DBG] ${defId}: promptId=${prNow?.id} opt0=${JSON.stringify(prNow?.options[0])} uid=${uid}`);
       results.fail.push(`${defId} (not in fresh options)`);
       console.log(`FAIL ${defId}: not in fresh options`, A.errs.slice(-1));
       smoke = null;
