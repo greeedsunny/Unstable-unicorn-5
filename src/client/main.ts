@@ -166,6 +166,7 @@ function applyCardSelectable(el: HTMLDivElement, uid: string, mini = false): voi
 
 // ── 渲染主流程 ───────────────────────────────────────────
 function render(): void {
+  document.querySelector('.win-banner')?.remove();
   const v = S.view;
   if (!v) return;
   const st = v.state;

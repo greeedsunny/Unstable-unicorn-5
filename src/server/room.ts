@@ -85,7 +85,7 @@ export class Room {
     }
     void this.persist();
     if (eng.s.neighWindow) {
-      void this.state.storage.setAlarm(Date.now() + 13000);
+      void this.state.storage.setAlarm(Date.now() + 26000);
     }
   }
 
