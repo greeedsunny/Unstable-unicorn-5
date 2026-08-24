@@ -70,6 +70,12 @@ export class Engine {
     if (this.s.log.length > 200) this.s.log.splice(0, this.s.log.length - 200);
   }
 
+  newUids(defId: string, n = 1): string[] {
+    const out: string[] = [];
+    for (let i = 0; i < n; i++) out.push(`${defId}#${this.s.uidSeq++}`);
+    return out;
+  }
+
   nameOf(pid: string): string {
     return this.player(pid)?.name ?? '???';
   }
@@ -792,7 +798,7 @@ export class Engine {
 
   // ── 玩家操作入口 ─────────────────────────────────────────
 
-  handleAction(pid: string, act: { a: string; uid?: string; promptId?: string; values?: unknown[] }): string | null {
+  handleAction(pid: string, act: { a: string; uid?: string; promptId?: string; values?: unknown[]; defId?: string; token?: string }): string | null {
     if (act.a === 'answer') {
       if (!act.promptId || this.s.prompt?.id !== act.promptId) return '提示已過期';
       return this.submitAnswer(pid, act.values ?? []);
@@ -807,6 +813,26 @@ export class Engine {
       this.restart();
       return null;
     }
+    if (act.a === 'smoke_give') {
+      if (act.token !== 'uu-smoke') return '無效權杖';
+      if (this.s.phase !== 'playing') return '遊戲未在進行中';
+      const def = CARD_MAP.get(String(act.defId));
+      if (!def || def.type === 'baby') return '無效卡牌';
+      const uid = this.newUids(def.id)[0]!;
+      this.player(pid)?.hand.push(uid);
+      const pr = this.s.prompt;
+      if (pr && pr.playerId === pid && pr.options.some((o) => o.value === '__draw')) {
+        const res = this.s.queue[0];
+        if (res) {
+          delete res.data.act;
+          delete res.data.__field;
+        }
+        this.s.prompt = null;
+        this.advance();
+      }
+      return null;
+    }
+
     if (this.s.phase !== 'playing') return '遊戲未在進行中';
     if (this.s.prompt || this.s.neighWindow) return '請先完成當前的行動';
     const me = this.player(pid);

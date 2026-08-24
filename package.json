@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "unstable-unicorns-online",
   "version": "1.0.0",
   "private": true,
@@ -9,7 +9,7 @@
     "dev": "vite build && wrangler dev",
     "deploy": "vite build && wrangler deploy",
     "typecheck": "tsc -p tsconfig.server.json --noEmit && tsc -p tsconfig.client.json --noEmit",
-    "tail": "wrangler tail"
+    "tail": "wrangler tail",`n    "smoke": "node scripts/smoke.mjs SMOKE src/shared/cards.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260820.1",

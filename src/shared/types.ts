@@ -109,7 +109,8 @@ export type ClientMsg =
   | { t: 'action'; a: 'sacrifice'; uid: string }
   | { t: 'action'; a: 'answer'; promptId: string; values: unknown[] }
   | { t: 'action'; a: 'neigh'; uid?: string }   // uid 缺略 = pass
-  | { t: 'action'; a: 'restart' };
+  | { t: 'action'; a: 'restart' }
+  | { t: 'action'; a: 'smoke_give'; defId: string; token: string };
 
 export type ServerMsg =
   | { t: 'welcome' }
