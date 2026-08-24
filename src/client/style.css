@@ -216,7 +216,11 @@ input:focus { border-color: var(--pink); }
 }
 #neigh-bar .neigh-opts { display:flex; gap:6px; flex-wrap:wrap; }
 
-#my-hand { display:flex; gap:8px; overflow-x:auto; padding: 6px 4px 10px; min-height: 158px; align-items:flex-end; }
+#my-hand { display:flex; gap:8px; overflow-x:auto; padding: 6px 4px 10px; min-height: 158px; align-items:flex-end; scrollbar-width: thin; scrollbar-color: var(--purple) rgba(168,110,224,.15); }
+#my-hand::-webkit-scrollbar { height: 12px; }
+#my-hand::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 999px; border: 2px solid #fdf6ff; }
+#my-hand::-webkit-scrollbar-track { background: rgba(168,110,224,.12); border-radius: 999px; }
+#prompt-bar { max-height: 34vh; overflow-y: auto; }
 #my-hand:empty::after { content:'（還沒有手牌）'; opacity:.4; margin:auto; }
 
 /* ── 卡牌 ── */

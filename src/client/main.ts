@@ -479,14 +479,39 @@ function renderPrompt(v: ServerView): void {
     const b = document.createElement('button');
     b.className = 'btn small';
     b.innerHTML = escapeHtml(opt.label);
+    attachCardTipToButton(b, opt.value);
     if (!multi) {
       b.onclick = () => send({ t: 'action', a: 'answer', promptId: pr.id, values: [opt.value] });
     } else {
-      b.onclick = () => toggleMulti(pr, opt.value, bar);
+      b.onclick = () => toggleMulti(pr, opt.value);
       if (isMultiSelected(opt.value)) b.classList.add('primary');
     }
     bar.appendChild(b);
   }
+}
+
+function attachCardTipToButton(b: HTMLButtonElement, value: unknown): void {
+  let defId: string | null = null;
+  if (typeof value === 'string' && /#\d+$/.test(value)) defId = value.split('#')[0]!;
+  else {
+    try {
+      const parsed = JSON.parse(String(value)) as { uid?: string } | null;
+      if (parsed?.uid) defId = parsed.uid.split('#')[0]!;
+    } catch {}
+  }
+  if (!defId) return;
+  const def = CARD_MAP.get(defId);
+  if (!def) return;
+  b.dataset.tipName = def.nameZh;
+  b.dataset.tipEn = `${typeBadge(def)} · ${def.name}`;
+  b.dataset.tipText = def.text;
+}
+
+function toggleMulti(pr: Prompt, value: unknown): void {
+  const i = S.pendingMulti.indexOf(value);
+  if (i >= 0) S.pendingMulti.splice(i, 1);
+  else S.pendingMulti.push(value);
+  render();
 }
 
 function promptHasCardTargets(pr: Prompt): boolean {
@@ -499,25 +524,6 @@ function promptHasCardTargets(pr: Prompt): boolean {
       return false;
     }
   });
-}
-
-function toggleMulti(pr: Prompt, value: unknown, bar: HTMLElement): void {
-  const i = S.pendingMulti.indexOf(value);
-  if (i >= 0) S.pendingMulti.splice(i, 1);
-  else S.pendingMulti.push(value);
-  const need = pr.min ?? pr.max ?? 1;
-  bar.querySelectorAll('button').forEach((b, idx) => {
-    if (idx >= pr.options.length) return;
-    b.classList.toggle('primary', isMultiSelected(pr.options[idx]!.value));
-  });
-  const okBtn = bar.querySelector<HTMLButtonElement>('button.primary:last-child') ?? bar.lastElementChild as HTMLElement;
-  const allBtns = bar.querySelectorAll('button');
-  const confirmBtn = allBtns[allBtns.length - 1] as HTMLButtonElement;
-  if (confirmBtn) {
-    confirmBtn.textContent = `確認（${S.pendingMulti.length}/${need}）`;
-    confirmBtn.disabled = S.pendingMulti.length !== need;
-  }
-  void okBtn;
 }
 
 function renderNeighBar(v: ServerView): void {
