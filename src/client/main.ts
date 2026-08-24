@@ -539,13 +539,13 @@ function renderNeighBar(v: ServerView): void {
   bar.classList.remove('hidden');
 
   if (!w.canRespond) {
-    $('#neigh-text').innerHTML = `${escapeHtml(by)} 打出了「<b>${srcDef?.nameZh}</b>」—— 你已表態`;
+    $('#neigh-text').innerHTML = `<div class="nt-title">${escapeHtml(by)} 打出了「<b>${srcDef?.nameZh}</b>」—— 你已表態</div><div class="nt-effect">${escapeHtml(srcDef?.text ?? '')}</div>`;
     ($('#btn-neigh') as HTMLButtonElement).style.display = 'none';
     ($('#btn-pass') as HTMLButtonElement).style.display = 'none';
     return;
   }
 
-  $('#neigh-text').innerHTML = `⚡ ${escapeHtml(by)} 打出了「<b>${srcDef?.nameZh}</b>」！要 Neigh 嗎？`;
+  $('#neigh-text').innerHTML = `<div class="nt-title">⚡ ${escapeHtml(by)} 打出了「<b>${srcDef?.nameZh}</b>」！要 Neigh 嗎？</div><div class="nt-effect">${escapeHtml(srcDef?.text ?? '')}</div>`;
   const neighBtn = $('#btn-neigh') as HTMLButtonElement;
   neighBtn.style.display = '';
   ($('#btn-pass') as HTMLButtonElement).style.display = '';
