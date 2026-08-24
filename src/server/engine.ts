@@ -900,6 +900,7 @@ export class Engine {
         playsLeft: this.s.playsLeft,
         deckCount: this.s.deck.length,
         discardTop: this.topDiscard(),
+        discardList: [...this.s.discard],
         discardCount: this.s.discard.length,
         nurseryCount: this.s.nursery.length,
         prompt: this.s.prompt,

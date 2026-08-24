@@ -59,8 +59,14 @@ export function bounceToOwnerHand(e: Engine, uid: string): void {
   loc.ref.stable = loc.ref.stable.filter((c) => c.uid !== uid);
   e.afterStableChange(loc.pid);
   if (e.stableHas(loc.pid, 'barbed-wire')) e.pushFront(e.makeRes('barbed_discard', loc.pid, {}));
-  loc.ref.hand.push(uid);
-  e.log(`${e.defOf(uid)?.nameZh} 回到 ${loc.ref.name} 的手上`, 'move');
+  const d = e.defOf(uid)!;
+  if (d.type === 'baby') {
+    e.s.nursery.unshift(uid);
+    e.log(`${d.nameZh} 是幼獨角獸，改為返回育嬰室`, 'sys');
+  } else {
+    loc.ref.hand.push(uid);
+    e.log(`${d.nameZh} 回到 ${loc.ref.name} 的手上`, 'move');
+  }
   e.checkWin();
 }
 

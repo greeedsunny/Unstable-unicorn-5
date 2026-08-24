@@ -250,14 +250,31 @@ function typeBadge(d: { type: string }): string {
 function renderDiscard(top: string | null): void {
   const el = $('#discard-show');
   el.innerHTML = '';
+  el.title = '點擊檢視棄牌堆';
+  el.style.cursor = 'pointer';
   if (top) {
     const c = cardEl(top, true);
     c.classList.add('mini-card');
-    applyCardSelectable(c, top, true);
     el.appendChild(c);
   } else {
     el.innerHTML = `<div class="pile-art">${trashArt()}</div>`;
   }
+  el.onclick = () => openDiscardViewer();
+}
+
+function openDiscardViewer(): void {
+  const v = S.view;
+  if (!v) return;
+  const list = v.state.discardList ?? [];
+  const box = $('#modal-box');
+  box.innerHTML = `<h3>🗑️ 棄牌堆（${list.length} 張）</h3><div class="m-options" style="display:flex;flex-wrap:wrap;gap:8px;"></div><div class="m-actions"><button class="btn small" id="m-close">關閉</button></div>`;
+  const wrap = box.querySelector('.m-options')!;
+  if (list.length === 0) wrap.innerHTML = '<span style="opacity:.5">目前是空的</span>';
+  for (const uid of [...list].reverse()) {
+    wrap.appendChild(cardEl(uid, true));
+  }
+  box.querySelector('#m-close')!.addEventListener('click', () => $('#modal').classList.add('hidden'));
+  $('#modal').classList.remove('hidden');
 }
 
 function renderOpponents(players: PublicPlayer[], turn: number): void {
@@ -432,7 +449,8 @@ function renderPrompt(v: ServerView): void {
   if (pr.playerId !== v.youId) {
     bar.classList.remove('hidden');
     const who = v.state.players.find((p) => p.id === pr.playerId)?.name ?? '?';
-    bar.innerHTML = `<span class="ptitle">⏳ 等待 ${escapeHtml(who)}：${escapeHtml(pr.title)}</span>`;
+    const turnOwner = v.state.players[v.state.turn]?.name ?? '?';
+    bar.innerHTML = `<span class="ptitle">（輪到 ${escapeHtml(turnOwner)}）⏳ 等待 ${escapeHtml(who)}：${escapeHtml(pr.title)}</span>`;
     return;
   }
 
@@ -442,9 +460,21 @@ function renderPrompt(v: ServerView): void {
   }
 
   bar.classList.remove('hidden');
-  bar.innerHTML = `<span class="ptitle">👉 ${escapeHtml(pr.title)}${promptHasCardTargets(pr) ? '<span class="phint">（也可直接點擊桌上發光的卡片）</span>' : ''}</span>`;
-
   const multi = pr.kind === 'multi';
+  const need = pr.min ?? pr.max ?? 1;
+  bar.innerHTML = `<span class="ptitle">👉 ${escapeHtml(pr.title)}${
+    promptHasCardTargets(pr) ? '<span class="phint">（也可直接點擊桌上發光的卡片）</span>' : ''
+  }${multi ? `<span class="phint">已選 ${S.pendingMulti.length}/${need} — 點卡片選擇，按「確認」送出</span>` : ''}</span>`;
+
+  if (multi) {
+    const okBtn = document.createElement('button');
+    okBtn.className = 'btn primary';
+    okBtn.textContent = `確認（${S.pendingMulti.length}/${need}）`;
+    okBtn.disabled = S.pendingMulti.length !== need;
+    okBtn.onclick = () => send({ t: 'action', a: 'answer', promptId: pr.id, values: [...S.pendingMulti] });
+    bar.appendChild(okBtn);
+  }
+
   for (const opt of pr.options) {
     const b = document.createElement('button');
     b.className = 'btn small';
@@ -456,15 +486,6 @@ function renderPrompt(v: ServerView): void {
       if (isMultiSelected(opt.value)) b.classList.add('primary');
     }
     bar.appendChild(b);
-  }
-  if (multi) {
-    const need = pr.min ?? pr.max ?? 1;
-    const okBtn = document.createElement('button');
-    okBtn.className = 'btn primary';
-    okBtn.textContent = `確認（${S.pendingMulti.length}/${need}）`;
-    okBtn.disabled = S.pendingMulti.length !== need;
-    okBtn.onclick = () => send({ t: 'action', a: 'answer', promptId: pr.id, values: [...S.pendingMulti] });
-    bar.appendChild(okBtn);
   }
 }
 

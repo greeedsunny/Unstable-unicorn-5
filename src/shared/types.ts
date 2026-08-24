@@ -141,6 +141,7 @@ export type ServerView = {
     playsLeft: number;
     deckCount: number;
     discardTop: string | null;
+    discardList: string[];
     discardCount: number;
     nurseryCount: number;
     prompt: Prompt | null;

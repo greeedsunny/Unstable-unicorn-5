@@ -23,7 +23,7 @@ export const CARDS: CardDef[] = [
     emoji: '🐣',
     color: c,
     copies: 1,
-    text: '計入勝利數量。若將被犧牲或消滅，改為返回育嬰室。',
+    text: '計入勝利數量。若將被犧牲、消滅或被移回手牌，一律返回育嬰室（不會存在於手牌）。',
   })),
   {
     id: 'baby-narwhal',
@@ -32,7 +32,7 @@ export const CARDS: CardDef[] = [
     type: 'baby',
     emoji: '🐋',
     copies: 1,
-    text: '計入勝利數量。若將被犧牲或消滅，改為返回育嬰室。',
+    text: '計入勝利數量。若將被犧牲、消滅或被移回手牌，一律返回育嬰室（不會存在於手牌）。',
   },
 
   // ── 基本獨角獸（22 張）──
