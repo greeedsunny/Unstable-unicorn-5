@@ -40,6 +40,7 @@ export const HANDLERS: Record<string, Handler> = {
     e.s.turnPhase = 'draw';
     e.drawTo(p.id, 1);
     if (e.s.phase !== 'playing') return;
+    if (e.s.playsLeft <= 0) e.s.playsLeft = 1;
     e.pushBack(e.makeRes('action_phase', p.id));
     e.done(res);
   },
@@ -49,11 +50,15 @@ export const HANDLERS: Record<string, Handler> = {
     const p = e.cur();
     if (e.s.turnEnded) {
       e.pushBack(e.makeRes('end_phase', p.id));
-      e.done(res);
+      e.removeRes(res);
       return;
     }
     if (!('act' in res.data)) {
-      if (e.s.playsLeft <= 0) e.s.playsLeft = 1;
+      if (e.s.playsLeft <= 0) {
+        e.pushBack(e.makeRes('end_phase', p.id));
+        e.removeRes(res);
+        return;
+      }
       e.s.turnPhase = 'action';
       const opts: ChoiceOption[] = [];
       for (const uid of p.hand) {
@@ -78,6 +83,7 @@ export const HANDLERS: Record<string, Handler> = {
       const err = e.initiatePlay(p.id, String(act));
       if (err) {
         e.log(err, 'sys');
+        e.removeRes(res);
         return;
       }
       e.s.playsLeft--;
@@ -85,7 +91,7 @@ export const HANDLERS: Record<string, Handler> = {
     if (e.s.phase === 'ended') return;
     if (e.s.playsLeft > 0 && !e.s.turnEnded) return;
     e.pushBack(e.makeRes('end_phase', p.id));
-    e.done(res);
+    e.removeRes(res);
   },
 
   end_phase: (e, res) => {

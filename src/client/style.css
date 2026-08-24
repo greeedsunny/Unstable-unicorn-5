@@ -178,7 +178,14 @@ input:focus { border-color: var(--pink); }
 
 #my-area { display:flex; flex-direction:column; gap:4px; min-height:0; }
 #my-area h3 { font-size: 14px; }
-#my-stable-wrap { background: rgba(255,255,255,.7); border: 3px solid var(--ink); border-radius: 14px; padding: 6px 10px; }
+#my-stable-wrap {
+  background: rgba(255,255,255,.7);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  padding: 6px 10px;
+  max-height: 30vh;
+  overflow-y: auto;
+}
 #my-stable { display: block; min-height: 66px; padding: 4px 0; }
 .stable-group { margin: 3px 0; }
 .sg-label { font-size: 11px; opacity: 0.6; margin: 2px 0 3px 2px; }

@@ -115,6 +115,11 @@ export class Engine {
     if (this.s.queue[0] === res) this.s.queue.shift();
   }
 
+  removeRes(res: Resolution): void {
+    const i = this.s.queue.indexOf(res);
+    if (i >= 0) this.s.queue.splice(i, 1);
+  }
+
   ask(
     res: Resolution,
     field: string,
