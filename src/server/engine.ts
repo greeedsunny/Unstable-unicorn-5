@@ -192,6 +192,13 @@ export class Engine {
 
   discardUids(uids: string[]): void {
     for (const uid of uids) {
+      for (const p of this.s.players) {
+        const i = p.hand.indexOf(uid);
+        if (i >= 0) {
+          p.hand.splice(i, 1);
+          break;
+        }
+      }
       const d = this.defOf(uid);
       if (d?.type === 'baby') {
         if (!this.s.nursery.includes(uid)) this.s.nursery.unshift(uid);
@@ -684,6 +691,8 @@ export class Engine {
   }
 
   finishMagicDiscard(res: Resolution): void {
+    if (res.data.__magicDiscarded) return;
+    res.data.__magicDiscarded = 1;
     const src = String(res.data.src ?? '');
     if (src) this.discardUids([src]);
   }
