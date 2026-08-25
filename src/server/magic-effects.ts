@@ -3,7 +3,6 @@ import type { Engine } from './engine';
 import type { Handler } from './effects';
 import {
   bounceToOwnerHand,
-  destroyAnyOptions,
   destroyAnySync,
   discardWalker,
   guardEnded,
@@ -39,7 +38,7 @@ export const MAGIC_HANDLERS: Record<string, Handler> = {
       e.sacrificeCard(res.playerId, String(res.data.sac));
     }
     if (!('d1' in res.data)) {
-      const opts = destroyAnyOptions(e, res.playerId);
+      const opts = e.destroyAnyOptions(res.playerId);
       if (opts.length === 0) {
         e.finishMagicDiscard(res);
         e.done(res);
@@ -57,7 +56,7 @@ export const MAGIC_HANDLERS: Record<string, Handler> = {
       res.data.k1 = 1;
     }
     if (!('d2' in res.data)) {
-      const opts = destroyAnyOptions(e, res.playerId);
+      const opts = e.destroyAnyOptions(res.playerId);
       if (opts.length === 0) {
         e.finishMagicDiscard(res);
         e.done(res);

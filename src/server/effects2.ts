@@ -750,7 +750,7 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
         res.data.saced = 1;
         e.sacrificeCard(res.playerId, String(res.data.sac));
       }
-      const opts = stableAnyCards(e);
+      const opts = e.destroyAnyOptions(res.playerId);
       if (opts.length === 0) {
         e.done(res);
         return;
