@@ -572,22 +572,41 @@ function promptHasCardTargets(pr: Prompt): boolean {
 function renderNeighBar(v: ServerView): void {
   const bar = $('#neigh-bar');
   const w = v.state.neighWindow;
-  if (!w || v.state.phase !== 'playing') {
+  if (!w || v.state.phase !== 'playing' || w.chain.length === 0) {
     bar.classList.add('hidden');
     return;
   }
-  const srcDef = CARD_MAP.get(w.sourceUid.split('#')[0]!);
-  const by = v.state.players.find((p) => p.id === w.byId)?.name ?? '?';
   bar.classList.remove('hidden');
 
+  const stack = $('#neigh-stack');
+  stack.innerHTML = '';
+  w.chain.forEach((c, i) => {
+    const el = cardEl(c.uid, true);
+    el.classList.add('chain-card');
+    el.style.zIndex = String(i + 1);
+    el.style.left = `${i * 14}px`;
+    el.style.top = `${-i * 10}px`;
+    el.style.transform = `rotate(${(i % 2 === 0 ? -1 : 1) * (2 + i)}deg)`;
+    stack.appendChild(el);
+  });
+
+  const top = w.chain[w.chain.length - 1]!;
+  const topDef = CARD_MAP.get(top.uid.split('#')[0]!)!;
+  const topBy = v.state.players.find((p) => p.id === top.byId)?.name ?? '?';
+  const neighCount = w.chain.length - 1;
+
   if (!w.canRespond) {
-    $('#neigh-text').innerHTML = `<div class="nt-title">${escapeHtml(by)} 打出了「<b>${srcDef?.nameZh}</b>」—— 你已表態</div><div class="nt-effect">${escapeHtml(srcDef?.text ?? '')}</div>`;
+    $('#neigh-text').innerHTML =
+      `<div class="nt-title">${escapeHtml(topBy)} 打出了「<b>${topDef.nameZh}</b>」${neighCount > 0 ? `（已疊 ${neighCount} 張 Neigh）` : ''}—— 你已表態</div>` +
+      `<div class="nt-effect">${escapeHtml(topDef.text)}</div>`;
     ($('#btn-neigh') as HTMLButtonElement).style.display = 'none';
     ($('#btn-pass') as HTMLButtonElement).style.display = 'none';
     return;
   }
 
-  $('#neigh-text').innerHTML = `<div class="nt-title">⚡ ${escapeHtml(by)} 打出了「<b>${srcDef?.nameZh}</b>」！要 Neigh 嗎？</div><div class="nt-effect">${escapeHtml(srcDef?.text ?? '')}</div>`;
+  $('#neigh-text').innerHTML =
+    `<div class="nt-title">⚡ 要 Neigh「<b>${topDef.nameZh}</b>」嗎？${neighCount > 0 ? `<span class="neigh-count">已疊 ${neighCount} 張 Neigh</span>` : ''}</div>` +
+    `<div class="nt-effect">${escapeHtml(topBy)}：${escapeHtml(topDef.text)}</div>`;
   const neighBtn = $('#btn-neigh') as HTMLButtonElement;
   neighBtn.style.display = '';
   ($('#btn-pass') as HTMLButtonElement).style.display = '';

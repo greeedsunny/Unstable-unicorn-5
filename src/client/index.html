@@ -54,12 +54,15 @@
         <button id="btn-open-chat" class="btn small">💬</button>
       </header>
 
-      <div id="neigh-bar" class="hidden">
-        <span id="neigh-text"></span>
-        <button id="btn-neigh" class="btn neigh-btn">🐴 Neigh！</button>
-        <button id="btn-pass" class="btn small">算了…</button>
-      </div>
       <div id="main-row">
+        <div id="neigh-bar" class="hidden">
+          <div id="neigh-stack"></div>
+          <div id="neigh-text"></div>
+          <div id="neigh-btns">
+            <button id="btn-neigh" class="btn neigh-btn">🐴 Neigh！</button>
+            <button id="btn-pass" class="btn small">算了…</button>
+          </div>
+        </div>
         <section id="opponents"></section>
         <aside id="right-sidebar">
           <div id="center-piles">
@@ -77,11 +80,6 @@
           <div id="my-stable"></div>
         </div>
         <div id="prompt-bar" class="hidden"></div>
-        <div id="neigh-bar" class="hidden">
-          <span id="neigh-text"></span>
-          <button id="btn-neigh" class="btn neigh-btn">🐴 Neigh！</button>
-          <button id="btn-pass" class="btn small">算了…</button>
-        </div>
         <h3>🖐️ 我的手牌 <span id="draw-slot"></span></h3>
         <div id="my-hand"></div>
       </section>

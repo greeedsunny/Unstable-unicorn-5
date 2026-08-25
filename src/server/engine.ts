@@ -963,10 +963,8 @@ export class Engine {
         prompt: this.s.prompt,
         neighWindow: w
           ? {
-              sourceUid: w.chain[0]!.uid,
-              byId: w.chain[0]!.byId,
+              chain: w.chain.map((c) => ({ uid: c.uid, byId: c.byId })),
               canRespond: w.awaiting.includes(youId),
-              responded: this.s.players.filter((p) => !w.awaiting.includes(p.id)).map((p) => p.id),
             }
           : null,
         log: this.s.log.slice(-60),

@@ -146,7 +146,7 @@ export type ServerView = {
     discardCount: number;
     nurseryCount: number;
     prompt: Prompt | null;
-    neighWindow: { sourceUid: string; byId: string; canRespond: boolean; responded: string[] } | null;    log: LogEntry[];
+            neighWindow: { chain: { uid: string; byId: string }[]; canRespond: boolean } | null;    log: LogEntry[];
     winner: string | null;
     winTarget: number;
   };
