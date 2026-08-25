@@ -613,19 +613,22 @@ function renderNeighBar(v: ServerView): void {
 
   neighBtn.onclick = () => {
     const me = v.state.players.find((p) => p.id === v.youId)!;
-    const instants = (me.hand ?? []).filter((u) => CARD_MAP.get(u.split('#')[0]!)?.type === 'instant');
-    if (instants.length === 0) {
-      toast('你沒有瞬間卡！', true);
+    const respondables = (me.hand ?? []).filter((u) => {
+      const d = CARD_MAP.get(u.split('#')[0]!)!;
+      return d.type === 'instant' || d.id === 'chronocorn';
+    });
+    if (respondables.length === 0) {
+      toast('你沒有可以打出的瞬間卡！', true);
       return;
     }
-    if (instants.length === 1) {
-      send({ t: 'action', a: 'neigh', uid: instants[0] });
+    if (respondables.length === 1) {
+      send({ t: 'action', a: 'neigh', uid: respondables[0] });
       return;
     }
     const box = $('#modal-box');
-    box.innerHTML = '<h3>要用哪張瞬間卡？</h3><div class="m-options"></div>';
+    box.innerHTML = '<h3>要打出哪張瞬間卡？</h3><div class="m-options"></div>';
     const opts = box.querySelector('.m-options')!;
-    for (const uid of instants) {
+    for (const uid of respondables) {
       const el = cardEl(uid);
       el.onclick = () => {
         $('#modal').classList.add('hidden');

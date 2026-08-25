@@ -422,9 +422,10 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
         return;
       }
       const top = e.s.deck.slice(-Math.min(3, e.s.deck.length)).reverse();
+      res.data.top3 = top;
       e.ask(res, 'keep', {
         playerId: res.playerId,
-        title: `預言家：檢視牌庫頂 ${top.length} 張，保留一張（其餘放回頂端）`,
+        title: `預言家：檢視牌庫頂 ${top.length} 張，保留一張加入手牌`,
         options: top.map((u) => ({ label: e.defOf(u)?.nameZh ?? '?', value: u })),
       });
       return;
@@ -436,6 +437,35 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
       if (idx >= 0) e.s.deck.splice(idx, 1);
       e.player(res.playerId)?.hand.push(keep);
       e.log(`${e.nameOf(res.playerId)} 窺探了命運……`, 'draw');
+    }
+    const remain = ((res.data.top3 as string[]) ?? []).filter((u) => u !== String(res.data.keep));
+    if (remain.length === 2 && !('o1' in res.data)) {
+      e.ask(res, 'o1', {
+        playerId: res.playerId,
+        title: '預言家：選擇放回的第 1 張（較靠近牌庫底）',
+        options: remain.map((u) => ({ label: e.defOf(u)?.nameZh ?? '?', value: u })),
+      });
+      return;
+    }
+    if (remain.length === 2 && !('o2' in res.data)) {
+      const lastCard = remain.find((u) => u !== String(res.data.o1))!;
+      e.ask(res, 'o2', {
+        playerId: res.playerId,
+        title: '預言家：選擇放回的第 2 張（成為新的牌庫頂）',
+        options: [{ label: e.defOf(lastCard)?.nameZh ?? '?', value: lastCard }],
+      });
+      return;
+    }
+    if ('o2' in res.data && !('arranged' in res.data)) {
+      res.data.arranged = 1;
+      const bottom = String(res.data.o1);
+      const topCard = String(res.data.o2);
+      for (const u of [bottom, topCard]) {
+        const idx = e.s.deck.lastIndexOf(u);
+        if (idx >= 0) e.s.deck.splice(idx, 1);
+      }
+      e.s.deck.push(bottom, topCard);
+      e.log(`${e.nameOf(res.playerId)} 重排了牌庫頂`, 'sys');
     }
     e.done(res);
   };
