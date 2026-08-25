@@ -308,6 +308,7 @@ export class Engine {
     this.log(`${p.name} 打出了「${d.nameZh}」`, 'play');
 
     const canNeigh =
+      d.id !== 'elusive-oceloticorn' &&
       !this.stableHas(byId, 'yay') &&
       this.respondersFor(byId).length > 0;
 
@@ -332,10 +333,14 @@ export class Engine {
     }
     const p = this.player(playerId)!;
     const d = this.defOf(uid);
-    if (!d || d.type !== 'instant' || !p.hand.includes(uid)) return '你沒有這張瞬間卡';
+    if (!d || !p.hand.includes(uid)) return '你沒有這張卡';
+    if (d.type !== 'instant' && d.id !== 'chronocorn') return '你沒有這張瞬間卡';
+    if ((d.id === 'neigh' || d.id === 'super-neigh') && this.s.players.some((pl) => pl.id !== playerId && this.stableHas(pl.id, 'elusive-oceloticorn'))) {
+      return '神出鬼沒豹貓獨角獸封鎖了 Neigh！';
+    }
     if (!this.canPlayInstant(playerId)) return '你不能打出瞬間卡';
     p.hand = p.hand.filter((c) => c !== uid);
-    w.chain.push({ uid, byId: playerId });
+    w.chain.push({ uid, byId: playerId, asInstant: d.id === 'chronocorn' });
     this.log(`${p.name} 打出「${d.nameZh}」！`, 'neigh');
     if (d.id === 'super-neigh') {
       this.resolveWindow();
@@ -362,7 +367,7 @@ export class Engine {
         continue;
       }
       const d = this.defOf(c.uid)!;
-      if (d.type === 'instant' && i > 0) {
+      if ((d.type === 'instant' || c.asInstant) && i > 0) {
         dead.add(c.uid);
         dead.add(chain[i - 1]!.uid);
         this.log(`「${this.defOf(chain[i - 1]!.uid)?.nameZh}」被取消了！`, 'neigh');
@@ -510,6 +515,11 @@ export class Engine {
       return;
     }
 
+    if (!blinded && d.id === 'nine-tailed-foxicorn') {
+      this.log(`九尾狐獨角獸的尾巴掃過牌庫…`, 'sys');
+      this.pushFront(this.makeRes('exit_nine-tailed-foxicorn', owner.id, {}));
+    }
+
     this.s.discard.push(uid);
 
     if (!blinded && d.id === 'stabby-the-unicorn') {
@@ -524,7 +534,7 @@ export class Engine {
     this.checkWin();
   }
 
-  sacrificeCard(byId: string, uid: string): boolean {
+  sacrificeCard(byId: string, uid: string, res?: Resolution | null): boolean | 'asked' {
     const loc = this.locateStableCard(uid);
     if (!loc || loc.pid !== byId) return false;
     const d = this.defOf(uid)!;
@@ -532,11 +542,62 @@ export class Engine {
       this.log(`小狗獨角獸搖搖尾巴，拒絕被犧牲！`, 'block');
       return false;
     }
+    if (res && !this.blindingLighted(byId) && this.stableHas(byId, 'archangel-unicorn') && !(`sha_${uid}` in res.data)) {
+      res.data[`sha_${uid}`] = 1;
+      this.ask(res, `sha_${uid}`, { playerId: byId, title: `大天使獨角獸：改為棄 1 張牌保護 ${d.nameZh}？`, options: this.ynOptions('棄 1 張代替') });
+      return 'asked';
+    }
+    if (res && `sha_${uid}` in res.data && this.isYes(res.data[`sha_${uid}`])) {
+      const me = this.player(byId)!;
+      if (me.hand.length > 0) {
+        if (!(`shd_${uid}` in res.data)) {
+          res.data[`shd_${uid}`] = 1;
+          this.ask(res, `shd_${uid}`, { playerId: byId, title: '大天使獨角獸：選擇要棄掉的牌', options: this.handOptions(byId) });
+          return 'asked';
+        }
+        this.discardUids([String(res.data[`shd_${uid}`])]);
+        this.log(`大天使獨角獸的守護：${d.nameZh} 免於被犧牲`, 'block');
+        return true;
+      }
+    }
     this.log(`${this.nameOf(byId)} 犧牲了 ${d.nameZh}`, 'leave');
     const removed = this.removeFromStable(uid);
     if (removed) this.leaveStableDisposal(removed.owner, uid, 'sacrifice');
     this.checkWin();
     return true;
+  }
+
+  sacrificeWithShield(res: Resolution, byId: string, uid: string): 'done' | 'asked' | 'fail' {
+    const loc = this.locateStableCard(uid);
+    if (!loc || loc.pid !== byId) return 'fail';
+    const d = this.defOf(uid)!;
+    if (d.id === 'puppicorn') {
+      this.log(`小狗獨角獸搖搖尾巴，拒絕被犧牲！`, 'block');
+      return 'fail';
+    }
+    if (res && !this.blindingLighted(byId) && this.stableHas(byId, 'archangel-unicorn') && !(`sha_${uid}` in res.data)) {
+      res.data[`sha_${uid}`] = 1;
+      this.ask(res, `sha_${uid}`, { playerId: byId, title: `大天使獨角獸：改為棄 1 張牌保護 ${d.nameZh}？`, options: this.ynOptions('棄 1 張代替') });
+      return 'asked';
+    }
+    if (res && `sha_${uid}` in res.data && this.isYes(res.data[`sha_${uid}`])) {
+      const me = this.player(byId)!;
+      if (me.hand.length > 0) {
+        if (!(`shd_${uid}` in res.data)) {
+          res.data[`shd_${uid}`] = 1;
+          this.ask(res, `shd_${uid}`, { playerId: byId, title: '大天使獨角獸：選擇要棄掉的牌', options: this.handOptions(byId) });
+          return 'asked';
+        }
+        this.discardUids([String(res.data[`shd_${uid}`])]);
+        this.log(`大天使獨角獸的守護：${d.nameZh} 免於被犧牲`, 'block');
+        return 'done';
+      }
+    }
+    this.log(`${this.nameOf(byId)} 犧牲了 ${d.nameZh}`, 'leave');
+    const removed = this.removeFromStable(uid);
+    if (removed) this.leaveStableDisposal(removed.owner, uid, 'sacrifice');
+    this.checkWin();
+    return 'done';
   }
 
   forceRemoveToDiscard(uid: string, verb: string): boolean {
@@ -586,12 +647,16 @@ export class Engine {
   destroyUnicorn(res: Resolution | null, byId: string, uid: string): boolean {
     const loc = this.locateStableCard(uid);
     if (!loc) return false;
+    const d = this.defOf(uid)!;
     const flag = `dk_${uid}`;
     if (res && flag in res.data) {
+      if (res.data[`shS_${uid}`] === 1) {
+        this.log(`${d.nameZh} 受到保護，消滅已取消`, 'block');
+        return false;
+      }
       this.destroyNow(loc.pid, uid, byId);
       return false;
     }
-    const d = this.defOf(uid)!;
     if (d.id === 'puppicorn') {
       this.log(`小狗獨角獸躲開了攻擊！`, 'block');
       return false;
@@ -607,6 +672,70 @@ export class Engine {
     if (this.stableHas(loc.pid, 'pandamonium') && byId !== loc.pid) {
       this.log(`${this.nameOf(loc.pid)} 的馬廄裡是貓熊，效果無效！`, 'block');
       return false;
+    }
+    if (res && !this.blindingLighted(loc.pid)) {
+      const shields: { id: string; q: string; cost: 'discard1' | 'discard2' | 'sacAttach' }[] = [];
+      if (this.stableHas(loc.pid, 'archangel-unicorn')) shields.push({ id: 'archangel-unicorn', q: `大天使獨角獸：改為棄 1 張牌保護 ${d.nameZh}？`, cost: 'discard1' });
+      if (this.stableHas(loc.pid, 'rad-scientist-unicorn')) shields.push({ id: 'rad-scientist-unicorn', q: `狂科學家獨角獸：改為棄 2 張牌保護 ${d.nameZh}？`, cost: 'discard2' });
+      if (isUnicorn(d.type) && this.stableHas(loc.pid, 'unicorn-of-conniving-artistry')) shields.push({ id: 'unicorn-of-conniving-artistry', q: `巧計獨角獸：改為犧牲一張升級／降級保護 ${d.nameZh}？`, cost: 'sacAttach' });
+      let i = Number(res.data[`shI_${uid}`] ?? 0);
+      while (i < shields.length) {
+        const s = shields[i]!;
+        const g = `shg_${uid}_${i}`;
+        if (!(g in res.data)) {
+          res.data[`shI_${uid}`] = i;
+          res.data[g] = 1;
+          this.ask(res, g, { playerId: loc.pid, title: s.q, options: this.ynOptions('保護') });
+          return true;
+        }
+        if (!this.isYes(res.data[g])) {
+          i++;
+          res.data[`shI_${uid}`] = i;
+          continue;
+        }
+        const me = this.player(loc.pid)!;
+        const cf = `shc_${uid}_${i}`;
+        if (s.cost === 'sacAttach') {
+          const attaches = me.stable.filter((c) => {
+            const dd = this.defOf(c.uid)!;
+            return dd.type === 'upgrade' || dd.type === 'downgrade';
+          });
+          if (attaches.length === 0) {
+            i++;
+            res.data[`shI_${uid}`] = i;
+            continue;
+          }
+          if (!(cf in res.data)) {
+            res.data[cf] = 1;
+            this.ask(res, cf, { playerId: loc.pid, title: '選擇要犧牲的升級／降級卡', options: attaches.map((c) => ({ label: this.defOf(c.uid)!.nameZh, value: c.uid })) });
+            return true;
+          }
+          this.sacrificeCard(loc.pid, String(res.data[cf]));
+        } else {
+          const need = s.cost === 'discard2' ? 2 : 1;
+          if (me.hand.length < need) {
+            i++;
+            res.data[`shI_${uid}`] = i;
+            continue;
+          }
+          if (!(cf in res.data)) {
+            res.data[cf] = 1;
+            this.ask(res, cf, {
+              playerId: loc.pid,
+              title: s.cost === 'discard2' ? '選擇要棄掉的 2 張牌' : '選擇要棄掉的牌',
+              kind: need === 2 ? 'multi' : 'choice',
+              min: need,
+              max: need,
+              options: this.handOptions(loc.pid),
+            });
+            return true;
+          }
+          this.discardUids(res.data[cf] as string[]);
+        }
+        res.data[`shS_${uid}`] = 1;
+        this.log(`${d.nameZh} 受到保護，消滅已取消！`, 'block');
+        return false;
+      }
     }
     if (d.id !== 'black-knight-unicorn' && this.stableHas(loc.pid, 'black-knight-unicorn') && res) {
       res.data[flag] = 1;

@@ -855,6 +855,275 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
     }
     e.done(res);
   };
+
+  HANDLERS['entry_ancestor-unicorn'] = (e, res) => {
+    if (!('sac' in res.data)) {
+      const opts = ownUnicorns(e, res.playerId);
+      if (opts.length === 0) { e.done(res); return; }
+      e.ask(res, 'sac', { playerId: res.playerId, title: '先祖獨角獸：犧牲 1 張獨角獸卡', options: opts });
+      return;
+    }
+    if (!('pick' in res.data)) {
+      if (!('saced' in res.data)) {
+        res.data.saced = 1;
+        const sr = e.sacrificeWithShield(res, res.playerId, String(res.data.sac));
+        if (sr === 'asked') return;
+      }
+      const matches = e.s.deck.filter((u) => isUnicorn(e.defOf(u)!.type));
+      if (matches.length === 0) { e.done(res); return; }
+      const counts = new Map<string, number>(); const seen = new Set<string>(); const opts = [];
+      for (const u of matches) { const d = e.defOf(u)!; counts.set(d.id, (counts.get(d.id) ?? 0) + 1); }
+      for (const u of matches) { const d = e.defOf(u)!; if (seen.has(d.id)) continue; seen.add(d.id); const n = counts.get(d.id) ?? 1; opts.push({ label: n > 1 ? `${d.nameZh}（×${n}）` : d.nameZh, value: d.id }); }
+      e.ask(res, 'pick', { playerId: res.playerId, title: '先祖獨角獸：選擇一張獨角獸帶入馬廄', options: opts });
+      return;
+    }
+    if (!('brought' in res.data)) {
+      res.data.brought = 1;
+      const want = String(res.data.pick);
+      const idx = e.s.deck.findIndex((u) => u.split('#')[0] === want);
+      if (idx >= 0) { const uid = e.s.deck.splice(idx, 1)[0]!; shuffleLocal(e.s.deck, e.consumeRand()); e.enterViaEffect(res.playerId, uid, `先祖獨角獸帶來了 ${e.defOf(uid)?.nameZh}`); }
+    }
+    e.done(res);
+  };
+
+  HANDLERS['entry_archangel-unicorn'] = (e, res) => {
+    const me = e.player(res.playerId)!;
+    if (me.stable.length < 3) { e.done(res); return; }
+    if (!('sacs' in res.data)) {
+      e.ask(res, 'sacs', { playerId: res.playerId, title: '大天使獨角獸：犧牲 3 張卡', kind: 'multi', min: 3, max: 3, options: ownAnyCards(e, res.playerId) });
+      return;
+    }
+    if (!('paid' in res.data)) {
+      res.data.paid = 1;
+      e.discardUids([]);
+      for (const uid of res.data.sacs as string[]) e.sacrificeCard(res.playerId, uid);
+    }
+    e.done(res);
+  };
+
+  HANDLERS['entry_chronocorn'] = (e, res) => {
+    const me = e.player(res.playerId)!;
+    if (me.hand.length > 0 && !('d' in res.data)) {
+      e.ask(res, 'd', { playerId: res.playerId, title: '時間獨角獸：棄 1 張牌', options: e.handOptions(res.playerId) });
+      return;
+    }
+    if ('d' in res.data && !('discarded' in res.data)) {
+      res.data.discarded = 1;
+      e.discardUids([String(res.data.d)]);
+    }
+    e.done(res);
+  };
+
+  HANDLERS['entry_elusive-oceloticorn'] = (e, res) => {
+    const opts = ownUnicorns(e, res.playerId);
+    if (opts.length < 2) { e.done(res); return; }
+    if (!('sacs' in res.data)) {
+      e.ask(res, 'sacs', { playerId: res.playerId, title: '神出鬼沒豹貓獨角獸：犧牲 2 張獨角獸卡', kind: 'multi', min: 2, max: 2, options: opts });
+      return;
+    }
+    if (!('paid' in res.data)) {
+      res.data.paid = 1;
+      for (const uid of res.data.sacs as string[]) e.sacrificeWithShield(res, res.playerId, uid);
+    }
+    e.done(res);
+  };
+
+  HANDLERS['entry_game-master-unicorn'] = (e, res) => {
+    const me = e.player(res.playerId)!;
+    if (me.hand.length > 0 && !('ds' in res.data)) {
+      const n = me.hand.length;
+      e.ask(res, 'ds', { playerId: res.playerId, title: `遊戲主持人獨角獸：棄掉整手手牌（${n} 張）`, kind: 'multi', min: n, max: n, options: e.handOptions(res.playerId) });
+      return;
+    }
+    if ('ds' in res.data && !('discarded' in res.data)) {
+      res.data.discarded = 1;
+      e.discardUids(res.data.ds as string[]);
+    }
+    e.done(res);
+  };
+
+  HANDLERS['entry_nine-tailed-foxicorn'] = (e, res) => {
+    const opts = ownUnicorns(e, res.playerId);
+    if (opts.length < 2) { e.done(res); return; }
+    if (!('sacs' in res.data)) {
+      e.ask(res, 'sacs', { playerId: res.playerId, title: '九尾狐獨角獸：犧牲 2 張獨角獸卡', kind: 'multi', min: 2, max: 2, options: opts });
+      return;
+    }
+    if (!('paid' in res.data)) {
+      res.data.paid = 1;
+      for (const uid of res.data.sacs as string[]) e.sacrificeWithShield(res, res.playerId, uid);
+    }
+    if (!('pick' in res.data)) {
+      const matches = e.s.deck.filter((u) => isUnicorn(e.defOf(u)!.type));
+      if (matches.length === 0) { e.done(res); return; }
+      const counts = new Map<string, number>(); const seen = new Set<string>(); const uopts = [];
+      for (const u of matches) { const d = e.defOf(u)!; counts.set(d.id, (counts.get(d.id) ?? 0) + 1); }
+      for (const u of matches) { const d = e.defOf(u)!; if (seen.has(d.id)) continue; seen.add(d.id); const n = counts.get(d.id) ?? 1; uopts.push({ label: n > 1 ? `${d.nameZh}（×${n}）` : d.nameZh, value: d.id }); }
+      e.ask(res, 'pick', { playerId: res.playerId, title: '九尾狐獨角獸：選擇一張獨角獸帶入馬廄', options: uopts });
+      return;
+    }
+    if (!('brought' in res.data)) {
+      res.data.brought = 1;
+      const want = String(res.data.pick);
+      const idx = e.s.deck.findIndex((u) => u.split('#')[0] === want);
+      if (idx >= 0) { const uid = e.s.deck.splice(idx, 1)[0]!; shuffleLocal(e.s.deck, e.consumeRand()); e.enterViaEffect(res.playerId, uid, `九尾狐獨角獸帶來了 ${e.defOf(uid)?.nameZh}`); }
+    }
+    e.done(res);
+  };
+
+  HANDLERS['entry_rad-scientist-unicorn'] = (e, res) => {
+    const opts = ownAnyCards(e, res.playerId);
+    if (opts.length === 0) { e.done(res); return; }
+    if (!('sac' in res.data)) {
+      e.ask(res, 'sac', { playerId: res.playerId, title: '狂科學家獨角獸：犧牲 1 張卡', options: opts });
+      return;
+    }
+    if (!('paid' in res.data)) {
+      res.data.paid = 1;
+      const sr = e.sacrificeWithShield(res, res.playerId, String(res.data.sac));
+      if (sr === 'asked') return;
+    }
+    e.done(res);
+  };
+
+  HANDLERS['entry_time-shifting-unicorn'] = (e, res) => {
+    const opts = ownAnyCards(e, res.playerId);
+    if (opts.length < 2) { e.done(res); return; }
+    if (!('sacs' in res.data)) {
+      e.ask(res, 'sacs', { playerId: res.playerId, title: '時移獨角獸：犧牲 2 張卡', kind: 'multi', min: 2, max: 2, options: opts });
+      return;
+    }
+    if (!('paid' in res.data)) {
+      res.data.paid = 1;
+      for (const uid of res.data.sacs as string[]) e.sacrificeWithShield(res, res.playerId, uid);
+    }
+    e.done(res);
+  };
+
+  HANDLERS['entry_unicorn-of-conniving-artistry'] = (e, res) => {
+    const opts = ownUnicorns(e, res.playerId);
+    if (opts.length === 0) { e.done(res); return; }
+    if (!('sac' in res.data)) {
+      e.ask(res, 'sac', { playerId: res.playerId, title: '巧計獨角獸：犧牲 1 張獨角獸卡', options: opts });
+      return;
+    }
+    if (!('paid' in res.data)) {
+      res.data.paid = 1;
+      const sr = e.sacrificeWithShield(res, res.playerId, String(res.data.sac));
+      if (sr === 'asked') return;
+    }
+    e.done(res);
+  };
+
+  HANDLERS['entry_unicorn-of-glory'] = (e, res) => {
+    const me = e.player(res.playerId)!;
+    if (me.hand.length > 0 && !('d' in res.data)) {
+      e.ask(res, 'd', { playerId: res.playerId, title: '榮耀獨角獸：棄 1 張牌', options: e.handOptions(res.playerId) });
+      return;
+    }
+    if ('d' in res.data && !('discarded' in res.data)) {
+      res.data.discarded = 1;
+      e.discardUids([String(res.data.d)]);
+    }
+    e.done(res);
+  };
+
+  HANDLERS['ts_archangel-unicorn'] = (e, res) => {
+    if (!('go' in res.data)) {
+      e.ask(res, 'go', { playerId: res.playerId, title: '大天使獨角獸：多抽 1 張牌？', options: e.ynOptions('抽牌') });
+      return;
+    }
+    if (!('done' in res.data)) {
+      res.data.done = 1;
+      if (e.isYes(res.data.go)) { e.drawTo(res.playerId, 1); e.log(`${e.nameOf(res.playerId)} 多抽了 1 張牌`, 'draw'); }
+    }
+    e.done(res);
+  };
+
+  HANDLERS['ts_game-master-unicorn'] = (e, res) => {
+    if (!('go' in res.data)) {
+      e.ask(res, 'go', { playerId: res.playerId, title: '遊戲主持人獨角獸：多抽 1 張牌？', options: e.ynOptions('抽牌') });
+      return;
+    }
+    if (!('done' in res.data)) {
+      res.data.done = 1;
+      if (e.isYes(res.data.go)) { e.drawTo(res.playerId, 1); e.log(`${e.nameOf(res.playerId)} 多抽了 1 張牌`, 'draw'); }
+    }
+    e.done(res);
+  };
+
+  HANDLERS['ts_time-shifting-unicorn'] = (e, res) => {
+    if (e.s.deck.length < 3) { e.done(res); return; }
+    if (!('p1' in res.data)) {
+      const top = e.s.deck.slice(-3).reverse();
+      res.data.top3 = top;
+      e.ask(res, 'p1', { playerId: res.playerId, title: '時移獨角獸：選擇牌庫頂第 1 張', options: top.map((u) => ({ label: e.defOf(u)?.nameZh ?? '?', value: u })) });
+      return;
+    }
+    if (!('p2' in res.data)) {
+      const remain = (res.data.top3 as string[]).filter((u) => u !== String(res.data.p1));
+      e.ask(res, 'p2', { playerId: res.playerId, title: '時移獨角獸：選擇牌庫頂第 2 張（最後一張放最頂）', options: remain.map((u) => ({ label: e.defOf(u)?.nameZh ?? '?', value: u })) });
+      return;
+    }
+    if (!('arranged' in res.data)) {
+      res.data.arranged = 1;
+      const p1 = String(res.data.p1);
+      const p2 = String(res.data.p2);
+      const third = (res.data.top3 as string[]).find((u) => u !== p1 && u !== p2)!;
+      const order = [third, p2, p1];
+      for (const u of order) {
+        const idx = e.s.deck.lastIndexOf(u);
+        if (idx >= 0) e.s.deck.splice(idx, 1);
+      }
+      e.s.deck.push(...order);
+      e.log(`${e.nameOf(res.playerId)} 重排了命運的絲線…`, 'sys');
+    }
+    e.done(res);
+  };
+
+  HANDLERS['exit_nine-tailed-foxicorn'] = (e, res) => {
+    if (!('go' in res.data)) {
+      const matches = e.s.deck.filter((u) => isUnicorn(e.defOf(u)!.type));
+      if (matches.length === 0) { e.done(res); return; }
+      e.ask(res, 'go', { playerId: res.playerId, title: '九尾狐獨角獸：從牌庫帶一隻獨角獸回來？', options: e.ynOptions('搜尋') });
+      return;
+    }
+    if (!e.isYes(res.data.go)) { e.done(res); return; }
+    if (!('pick' in res.data)) {
+      const matches = e.s.deck.filter((u) => isUnicorn(e.defOf(u)!.type));
+      const counts = new Map<string, number>(); const seen = new Set<string>(); const opts = [];
+      for (const u of matches) { const d = e.defOf(u)!; counts.set(d.id, (counts.get(d.id) ?? 0) + 1); }
+      for (const u of matches) { const d = e.defOf(u)!; if (seen.has(d.id)) continue; seen.add(d.id); const n = counts.get(d.id) ?? 1; opts.push({ label: n > 1 ? `${d.nameZh}（×${n}）` : d.nameZh, value: d.id }); }
+      e.ask(res, 'pick', { playerId: res.playerId, title: '九尾狐獨角獸：選擇一張獨角獸帶入馬廄', options: opts });
+      return;
+    }
+    if (!('brought' in res.data)) {
+      res.data.brought = 1;
+      const want = String(res.data.pick);
+      const idx = e.s.deck.findIndex((u) => u.split('#')[0] === want);
+      if (idx >= 0) { const uid = e.s.deck.splice(idx, 1)[0]!; shuffleLocal(e.s.deck, e.consumeRand()); e.enterViaEffect(res.playerId, uid, `九尾狐獨角獸帶來了 ${e.defOf(uid)?.nameZh}`); }
+    }
+    e.done(res);
+  };
+
+  HANDLERS['glory_search'] = (e, res) => {
+    if (!('pick' in res.data)) {
+      const matches = e.s.deck.filter((u) => e.defOf(u)!.type === 'upgrade');
+      if (matches.length === 0) { e.done(res); return; }
+      const counts = new Map<string, number>(); const seen = new Set<string>(); const opts = [];
+      for (const u of matches) { const d = e.defOf(u)!; counts.set(d.id, (counts.get(d.id) ?? 0) + 1); }
+      for (const u of matches) { const d = e.defOf(u)!; if (seen.has(d.id)) continue; seen.add(d.id); const n = counts.get(d.id) ?? 1; opts.push({ label: n > 1 ? `${d.nameZh}（×${n}）` : d.nameZh, value: d.id }); }
+      e.ask(res, 'pick', { playerId: res.playerId, title: '榮耀獨角獸：從牌庫帶一張升級卡進馬廄', options: opts });
+      return;
+    }
+    if (!('brought' in res.data)) {
+      res.data.brought = 1;
+      const want = String(res.data.pick);
+      const idx = e.s.deck.findIndex((u) => u.split('#')[0] === want);
+      if (idx >= 0) { const uid = e.s.deck.splice(idx, 1)[0]!; shuffleLocal(e.s.deck, e.consumeRand()); e.attachTo(res.playerId, uid); }
+    }
+    e.done(res);
+  };
 }
 
 function alias(target: string, extra: Record<string, unknown>, HANDLERS: Record<string, Handler>): Handler {

@@ -412,6 +412,64 @@ export const CARDS: CardDef[] = [
     type: 'upgrade', emoji: '🪢', copies: 1,
     text: '進場需求：你的馬廄需有基本獨角獸。你的回合開始時：可借用另一個馬廄的一隻獨角獸，回合結束時歸還。',
   },
+
+  {
+    id: 'unicorn-lasso', name: 'Unicorn Lasso', nameZh: '獨角獸套索',
+    type: 'upgrade', emoji: '🪢', copies: 1,
+    text: '進場需求：你的馬廄需有基本獨角獸。你的回合開始時：可借用另一個馬廄的一隻獨角獸，回合結束時歸還。',
+  },
+
+  // ── Ultimate Unicorns 擴充 ──
+  {
+    id: 'ancestor-unicorn', name: 'Ancestor Unicorn', nameZh: '先祖獨角獸',
+    type: 'magic_unicorn', emoji: '🗿', copies: 1,
+    text: '進場：犧牲 1 張獨角獸卡，然後從牌庫搜尋一張獨角獸卡，帶直接入你的馬廄並洗牌。',
+  },
+  {
+    id: 'archangel-unicorn', name: 'Archangel Unicorn', nameZh: '大天使獨角獸',
+    type: 'magic_unicorn', emoji: '👼', copies: 1,
+    text: '進場：犧牲 3 張卡。你馬廄的卡將被犧牲或消滅時，可改為棄 1 張牌保護。回合開始時：可多抽 1 張牌。',
+  },
+  {
+    id: 'chronocorn', name: 'Chronocorn', nameZh: '時間獨角獸',
+    type: 'magic_unicorn', emoji: '⏳', copies: 1,
+    text: '進場：棄 1 張牌。此卡也可以當成瞬間卡打出。',
+  },
+  {
+    id: 'elusive-oceloticorn', name: 'Elusive Oceloticorn', nameZh: '神出鬼沒豹貓獨角獸',
+    type: 'magic_unicorn', emoji: '🐆', copies: 1,
+    text: '進場：犧牲 2 張獨角獸卡。其他玩家不能打出 Neigh 卡，且此卡不會被 Neigh。',
+  },
+  {
+    id: 'game-master-unicorn', name: 'Game Master Unicorn', nameZh: '遊戲主持人獨角獸',
+    type: 'magic_unicorn', emoji: '🎲', copies: 1,
+    text: '進場：棄掉整手手牌。回合開始時：可多抽 1 張牌。你的手牌上限 +3。',
+  },
+  {
+    id: 'nine-tailed-foxicorn', name: 'Nine-Tailed Foxicorn', nameZh: '九尾狐獨角獸',
+    type: 'magic_unicorn', emoji: '🦊', copies: 1,
+    text: '進場：犧牲 2 張獨角獸卡，然後從牌庫搜尋一張獨角獸卡帶入馬廄並洗牌。此卡離場時：可從牌庫搜尋一張獨角獸卡帶入馬廄並洗牌。',
+  },
+  {
+    id: 'rad-scientist-unicorn', name: 'The Rad Scientist Unicorn', nameZh: '狂科學家獨角獸',
+    type: 'magic_unicorn', emoji: '🥼', copies: 1,
+    text: '進場：犧牲 1 張卡。你馬廄的卡將被消滅時，可改為棄 2 張牌保護。',
+  },
+  {
+    id: 'time-shifting-unicorn', name: 'Time-Shifting Unicorn', nameZh: '時移獨角獸',
+    type: 'magic_unicorn', emoji: '🌀', copies: 1,
+    text: '進場：犧牲 2 張卡。回合開始時：可檢視牌庫頂 3 張，並以任意順序放回。',
+  },
+  {
+    id: 'unicorn-of-conniving-artistry', name: 'Unicorn of Conniving Artistry', nameZh: '巧計獨角獸',
+    type: 'magic_unicorn', emoji: '🎭', copies: 1,
+    text: '進場：犧牲 1 張獨角獸卡。你的獨角獸將被消滅時，可改為犧牲一張升級／降級卡保護。',
+  },
+  {
+    id: 'unicorn-of-glory', name: 'Unicorn of Glory', nameZh: '榮耀獨角獸',
+    type: 'magic_unicorn', emoji: '🏆', copies: 1,
+    text: '進場：棄 1 張牌。當其他玩家在你的馬廄打出降級卡時：從牌庫搜尋一張升級卡帶入馬廄並洗牌。',
+  },
 ];
 
 export const CARD_MAP = new Map(CARDS.map((c) => [c.id, c]));

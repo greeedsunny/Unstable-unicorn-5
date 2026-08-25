@@ -104,7 +104,8 @@ export const HANDLERS: Record<string, Handler> = {
         delete e.s.lasso![uid];
       }
     }
-    const excess = p.hand.length - 7;
+    const limit = 7 + (e.stableHas(p.id, 'game-master-unicorn') ? 3 : 0);
+    const excess = p.hand.length - limit;
     if (excess > 0) {
       if (!('d' in res.data)) {
         e.ask(res, 'd', {
@@ -133,6 +134,10 @@ export const HANDLERS: Record<string, Handler> = {
       return;
     }
     e.attachTo(String(res.data.tgt), String(res.data.src));
+    const ad = e.defOf(String(res.data.src))!;
+    if (ad.type === 'downgrade' && String(res.data.tgt) !== res.playerId && !e.blindingLighted(String(res.data.tgt)) && e.stableHas(String(res.data.tgt), 'unicorn-of-glory')) {
+      e.pushFront(e.makeRes('glory_search', String(res.data.tgt), {}));
+    }
     e.done(res);
   },
 
