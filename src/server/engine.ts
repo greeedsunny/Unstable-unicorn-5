@@ -827,6 +827,14 @@ export class Engine {
       this.restart();
       return null;
     }
+    if (act.a === 'abort') {
+      const me = this.player(pid);
+      if (!me) return '你不是本場玩家';
+      if (this.s.phase === 'lobby') return null;
+      this.log(`${me.name} 中止了遊戲，所有人回到大廳`, 'sys');
+      this.restart();
+      return null;
+    }
     if (act.a === 'smoke_give') {
       if (act.token !== 'uu-smoke') return '無效權杖';
       if (this.s.phase !== 'playing') return '遊戲未在進行中';

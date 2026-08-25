@@ -215,6 +215,9 @@ function render(): void {
 
   const chatBtn = $('#btn-open-chat') as HTMLButtonElement;
   chatBtn.onclick = () => $('#chat-panel').classList.toggle('hidden');
+  const abortBtn = $('#btn-abort') as HTMLButtonElement;
+  abortBtn.classList.toggle('hidden', st.phase !== 'playing');
+  abortBtn.onclick = () => confirmModal('要中止本場遊戲嗎？所有人都會回到大廳。', () => send({ t: 'action', a: 'abort' }));
   const sacBtn = $('#btn-sacrifice-mode') as HTMLButtonElement;
   sacBtn.classList.toggle('active', S.sacrificeMode);
   sacBtn.onclick = () => {
@@ -604,10 +607,10 @@ function renderEndBanner(v: ServerView): void {
     <h1>${winner ? `${escapeHtml(winner.name)} ${isMe ? '贏了！！' : '獲勝！'}` : '沒有人獲勝'}</h1>
     <p>${isMe ? '你的馬廄閃閃發光 ✨' : winner ? `率先湊齊 ${v.state.winTarget} 隻獨角獸！` : ''}</p>
     <div class="btn-row">
-      <button class="btn primary" id="btn-again">🔄 再來一局</button>
+      <button class="btn primary" id="btn-again">🏠 回到大廳（開新遊戲）</button>
     </div>`;
   document.body.appendChild(div);
-  div.querySelector('#btn-again')!.addEventListener('click', () => send({ t: 'action', a: 'restart' }));
+  div.querySelector('#btn-again')!.addEventListener('click', () => send({ t: 'action', a: 'abort' }));
 }
 
 // ── 可愛風提示框 ─────────────────────────────────────────
