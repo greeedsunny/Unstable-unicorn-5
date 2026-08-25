@@ -40,7 +40,9 @@ export const CARD_IMG: Record<string, string> = {
   'rainbow-aura': 'https://i.postimg.cc/MK4L1yf5/rainbowaura.jpg',
   'rainbow-mane': 'https://i.postimg.cc/yY5G0F3v/rainbowmane.jpg',
   'summoning-ritual': 'https://i.postimg.cc/yY5G0F30/summoningritual.jpg',
-  'unicorn-lasso': 'https://i.postimg.cc/YqVPQ1Lf/unicornlasso.jpg',
+  'unicorn-lasso': 'https://i.postimg.cc/vBmmfLhB/image.png',
+  'caffeine-overload': 'https://i.postimg.cc/mZvHfJ8L/image.png',
+  'stable-artillery': 'https://i.postimg.cc/05wzfZPg/image.png',
   'yay': 'https://i.postimg.cc/3J6q2g0j/yay.jpg',
 
   'back-kick': 'https://i.postimg.cc/c1YqTkZz/backkick.jpg',
@@ -61,6 +63,24 @@ export const CARD_IMG: Record<string, string> = {
 
   'neigh': 'https://i.postimg.cc/NMLWmYkm/neigh.jpg',
   'super-neigh': 'https://i.postimg.cc/NMLWmYk1/UU-Ch-Co-001.png',
+
+  'baby-green': 'https://i.postimg.cc/2SCRJjyy/babygreen.jpg',
+  'baby-narwhal': 'https://i.postimg.cc/Mpz24ZHn/babynarwhal.jpg',
+  'baby-orange': 'https://i.postimg.cc/vZGFj8Tc/babyorange.jpg',
+  'baby-pink': 'https://i.postimg.cc/T3TMS21L/babypink.jpg',
+  'baby-purple': 'https://i.postimg.cc/Mpz24ZHR/babypurple.jpg',
+  'baby-rainbow': 'https://i.postimg.cc/T3TMS21g/babyrainbow.jpg',
+  'baby-white': 'https://i.postimg.cc/YCtKV20x/babywhite.jpg',
+  'baby-yellow': 'https://i.postimg.cc/sg3d8fxc/babyyellow.jpg',
+
+  'basic-blue-5': 'https://i.postimg.cc/SxBJ0zBw/basicblue.jpg',
+  'basic-green-4': 'https://i.postimg.cc/t4KY0x0G/basicgreen.jpg',
+  'basic-indigo-6': 'https://i.postimg.cc/XYRpMCMb/basicindigo.jpg',
+  'narwhal-basic': 'https://i.postimg.cc/52h6cCcJ/basicnarwhal.jpg',
+  'basic-orange-2': 'https://i.postimg.cc/rwBK6r6M/basicorange.jpg',
+  'basic-purple-7': 'https://i.postimg.cc/0yTbgwg8/basicpurple.jpg',
+  'basic-red-1': 'https://i.postimg.cc/Z5GCkdkn/basicred.jpg',
+  'basic-yellow-3': 'https://i.postimg.cc/htzf30YK/basicyellow.jpg',
 };
 
 export const TYPE_IMG: Partial<Record<string, string>> = {};

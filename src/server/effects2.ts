@@ -160,19 +160,33 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
         e.done(res);
         return;
       }
+      const counts = new Map<string, number>();
+      for (const u of matches) {
+        const id = e.defOf(u)!.id;
+        counts.set(id, (counts.get(id) ?? 0) + 1);
+      }
+      const seen = new Set<string>();
+      const searchOpts = [];
+      for (const u of matches) {
+        const d = e.defOf(u)!;
+        if (seen.has(d.id)) continue;
+        seen.add(d.id);
+        const n = counts.get(d.id) ?? 1;
+        searchOpts.push({ label: n > 1 ? `${d.nameZh}（×${n}）` : d.nameZh, value: d.id });
+      }
       e.ask(res, 'pick', {
         playerId: res.playerId,
         title: `搜尋結果：選擇一張${label}`,
-        options: matches.map((u) => ({ label: e.defOf(u)?.nameZh ?? '?', value: u })),
+        options: searchOpts,
       });
       return;
     }
     if (!('took' in res.data)) {
       res.data.took = 1;
-      const uid = String(res.data.pick);
-      const idx = e.s.deck.indexOf(uid);
+      const wantDef = String(res.data.pick);
+      const idx = e.s.deck.findIndex((u) => u.split('#')[0] === wantDef);
       if (idx >= 0) {
-        e.s.deck.splice(idx, 1);
+        const uid = e.s.deck.splice(idx, 1)[0]!;
         shuffleLocal(e.s.deck, e.consumeRand());
         e.player(res.playerId)?.hand.push(uid);
         e.log(`${e.nameOf(res.playerId)} 搜尋並選走了 ${e.defOf(uid)?.nameZh}`, 'draw');
