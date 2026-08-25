@@ -34,6 +34,7 @@ export const CARD_IMG: Record<string, string> = {
   'the-great-narwhal': 'https://i.postimg.cc/NGVjWXvf/thegreatnarwhal.jpg',
   'unicorn-on-the-cob': 'https://i.postimg.cc/3r6xPGQR/unicornonthecob.jpg',
 
+  'barbed-wire': 'https://i.postimg.cc/rFh7wBYr/image.png',
   'blinding-light': 'https://i.postimg.cc/76CPtP6R/blindinglight.jpg',
   'broken-stable': 'https://i.postimg.cc/85FkXk59/brokenstable.jpg',
   'nanny-cam': 'https://i.postimg.cc/tT1RvRTf/nannycam.jpg',
@@ -51,6 +52,8 @@ export const CARD_IMG: Record<string, string> = {
   'unicorn-lasso': 'https://i.postimg.cc/vBmmfLhB/image.png',
   'caffeine-overload': 'https://i.postimg.cc/mZvHfJ8L/image.png',
   'stable-artillery': 'https://i.postimg.cc/05wzfZPg/image.png',
+  'claw-machine': 'https://i.postimg.cc/1Xsb8sQG/image.png',
+  'rainbow-lasso': 'https://i.postimg.cc/g279NCvq/image.png',
   'yay': 'https://i.postimg.cc/3J6q2g0j/yay.jpg',
 
   'back-kick': 'https://i.postimg.cc/c1YqTkZz/backkick.jpg',
@@ -58,6 +61,7 @@ export const CARD_IMG: Record<string, string> = {
   'change-of-luck': 'https://i.postimg.cc/sfSFKHsd/changeofluck.jpg',
   'glitter-tornado': 'https://i.postimg.cc/SQ80V1kp/glittertornado.jpg',
   'good-deal': 'https://i.postimg.cc/HW5G3vdg/gooddeal.jpg',
+  'kiss-of-life': 'https://i.postimg.cc/Zq9mmbbZ/image.png',
   'mystical-vortex': 'https://i.postimg.cc/gcR94tmd/mysticalvortex.jpg',
   'reset-button': 'https://i.postimg.cc/G3Y0zgdL/resetbutton.jpg',
   're-target': 'https://i.postimg.cc/X70RPKYS/retarget.jpg',
