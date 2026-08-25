@@ -150,7 +150,7 @@ input:focus { border-color: var(--pink); }
 #opponents {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 10px;
   align-content: start;
   overflow-y: auto;
@@ -180,9 +180,9 @@ input:focus { border-color: var(--pink); }
 .opponent.current { outline: 4px solid var(--yellow); animation: pulse 1.2s infinite; }
 @keyframes pulse { 0%,100%{outline-offset:0} 50%{outline-offset:3px} }
 .opponent.disconnected { opacity: .45; filter: grayscale(.7); }
-.opponent .card-mini { width: 68px; height: 94px; }
-.opponent .card-mini .art svg { max-height: 58px; }
-.opponent .stable-strip { max-height: 100px; overflow-y: auto; }
+.opponent .card-mini { width: 76px; height: 104px; }
+.opponent .card-mini .art svg { max-height: 64px; }
+.opponent .stable-strip { max-height: none; }
 .opponent h4 { font-size: 13px; display:flex; justify-content: space-between; gap:6px;}
 .opponent .uni-count { background: var(--purple); color:#fff; border-radius:999px; padding:0 8px; }
 .opponent .stable-strip { display:flex; flex-wrap: wrap; gap:2px; margin-top:4px; min-height: 22px; }
@@ -227,10 +227,11 @@ input:focus { border-color: var(--pink); }
   border: 3px solid var(--ink);
   border-radius: 14px;
   padding: 6px 10px;
-  max-height: 30vh;
+  max-height: 220px;
   overflow-y: auto;
 }
-#my-stable { display: block; min-height: 66px; padding: 4px 0; }
+#my-stable { display: flex; flex-wrap: wrap; gap: 4px 20px; align-items: flex-start; min-height: 66px; padding: 4px 0; }
+.stable-group { max-width: 100%; }
 .stable-group { margin: 3px 0; }
 .sg-label { font-size: 11px; opacity: 0.6; margin: 2px 0 3px 2px; }
 .sg-row { display: flex; flex-wrap: wrap; gap: 6px; }
