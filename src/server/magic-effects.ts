@@ -3,6 +3,7 @@ import type { Engine } from './engine';
 import type { Handler } from './effects';
 import {
   bounceToOwnerHand,
+  destroyAnyOptions,
   destroyAnySync,
   discardWalker,
   guardEnded,
