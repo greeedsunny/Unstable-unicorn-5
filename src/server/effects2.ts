@@ -887,15 +887,15 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
   };
 
   HANDLERS['entry_archangel-unicorn'] = (e, res) => {
-    const me = e.player(res.playerId)!;
-    if (me.stable.length < 3) { e.done(res); return; }
+    const opts = ownAnyCards(e, res.playerId);
+    const need = Math.min(3, opts.length);
+    if (need === 0) { e.done(res); return; }
     if (!('sacs' in res.data)) {
-      e.ask(res, 'sacs', { playerId: res.playerId, title: '大天使獨角獸：犧牲 3 張卡', kind: 'multi', min: 3, max: 3, options: ownAnyCards(e, res.playerId) });
+      e.ask(res, 'sacs', { playerId: res.playerId, title: `大天使獨角獸：犧牲 ${need} 張卡`, kind: 'multi', min: need, max: need, options: opts });
       return;
     }
     if (!('paid' in res.data)) {
       res.data.paid = 1;
-      e.discardUids([]);
       for (const uid of res.data.sacs as string[]) e.sacrificeCard(res.playerId, uid);
     }
     e.done(res);
