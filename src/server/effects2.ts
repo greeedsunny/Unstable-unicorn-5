@@ -30,13 +30,13 @@ export function guardEnded(e: Engine, res: Resolution): boolean {
 export function ownUnicorns(e: Engine, pid: string): ChoiceOption[] {
   const p = e.player(pid);
   if (!p) return [];
-  return p.stable.filter((c) => isUnicorn(e.defOf(c.uid)!.type)).map((c) => ({ label: e.defOf(c.uid)!.nameZh, value: c.uid }));
+  return p.stable.filter((c) => isUnicorn(e.defOf(c.uid)!.type) && e.defOf(c.uid)!.id !== 'puppicorn').map((c) => ({ label: e.defOf(c.uid)!.nameZh, value: c.uid }));
 }
 
 export function ownAnyCards(e: Engine, pid: string): ChoiceOption[] {
   const p = e.player(pid);
   if (!p) return [];
-  return p.stable.map((c) => ({ label: e.defOf(c.uid)!.nameZh, value: c.uid }));
+  return p.stable.filter((c) => e.defOf(c.uid)!.id !== 'puppicorn').map((c) => ({ label: e.defOf(c.uid)!.nameZh, value: c.uid }));
 }
 
 export function stableAnyCards(e: Engine, excludePids: string[] = []): ChoiceOption[] {
@@ -383,7 +383,7 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
 
   HANDLERS['entry_shark-with-a-horn'] = (e, res) => {
     if (!('go' in res.data)) {
-      if (e.unicornOptionsAny().length === 0) {
+      if (e.destroyUnicornOptions(res.playerId).length === 0) {
         e.done(res);
         return;
       }
@@ -399,7 +399,7 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
       e.sacrificeCard(res.playerId, String(res.data.src));
     }
     if (!('t' in res.data)) {
-      const opts = e.unicornOptionsAny();
+      const opts = e.destroyUnicornOptions(res.playerId);
       if (opts.length === 0) {
         e.done(res);
         return;
@@ -637,7 +637,7 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
   HANDLERS['ts_stable-artillery'] = (e, res) => {
     const me = e.player(res.playerId)!;
     if (!('go' in res.data)) {
-      if (me.hand.length < 2 || e.unicornOptionsAny().length === 0) {
+      if (me.hand.length < 2 || e.destroyUnicornOptions(res.playerId).length === 0) {
         e.done(res);
         return;
       }
@@ -657,7 +657,7 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
       e.discardUids(res.data.ds as string[]);
     }
     if (!('t' in res.data)) {
-      const opts = e.unicornOptionsAny();
+      const opts = e.destroyUnicornOptions(res.playerId);
       if (opts.length === 0) {
         e.done(res);
         return;
@@ -768,7 +768,7 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
 
   HANDLERS['ts_rhinocorn'] = (e, res) => {
     if (!('go' in res.data)) {
-      if (e.unicornOptionsAny().length === 0) {
+      if (e.destroyUnicornOptions(res.playerId).length === 0) {
         e.done(res);
         return;
       }
@@ -780,7 +780,7 @@ export function registerMore(HANDLERS: Record<string, Handler>): void {
       return;
     }
     if (!('t' in res.data)) {
-      e.ask(res, 't', { playerId: res.playerId, title: '犀牛獨角獸：撞誰？', options: e.unicornOptionsAny() });
+      e.ask(res, 't', { playerId: res.playerId, title: '犀牛獨角獸：撞誰？', options: e.destroyUnicornOptions(res.playerId) });
       return;
     }
     if (!('charged' in res.data)) {

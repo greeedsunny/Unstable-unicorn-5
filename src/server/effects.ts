@@ -1,4 +1,4 @@
-﻿import { isUnicorn } from '../shared/cards';
+import { isUnicorn } from '../shared/cards';
 import type { CardDef, ChoiceOption, Resolution } from '../shared/types';
 import type { Engine } from './engine';
 import { MAGIC_HANDLERS } from './magic-effects';
@@ -139,7 +139,7 @@ export const HANDLERS: Record<string, Handler> = {
   destroy_unicorn_any: (e, res) => {
     if (guardEnded(e, res)) return;
     if (!('t' in res.data)) {
-      let opts = e.unicornOptionsAny();
+      let opts = e.destroyUnicornOptions(String(res.data.by ?? res.playerId));
       if (opts.length === 0) {
         e.done(res);
         return;

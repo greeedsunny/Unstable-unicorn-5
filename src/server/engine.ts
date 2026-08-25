@@ -548,6 +548,41 @@ export class Engine {
     return true;
   }
 
+  destroyable(pid: string, uid: string, byId: string): boolean {
+    const d = this.defOf(uid)!;
+    if (d.id === 'puppicorn') return false;
+    if (d.id === 'magical-kittencorn' && byId !== pid) return false;
+    if (this.stableHas(pid, 'rainbow-aura')) return false;
+    if (this.stableHas(pid, 'pandamonium') && byId !== pid) return false;
+    return true;
+  }
+
+  destroyUnicornOptions(byId: string, excludePids: string[] = []): ChoiceOption[] {
+    const opts: ChoiceOption[] = [];
+    for (const p of this.s.players) {
+      if (excludePids.includes(p.id)) continue;
+      for (const c of p.stable) {
+        const d = this.defOf(c.uid)!;
+        if (!isUnicorn(d.type) || !this.destroyable(p.id, c.uid, byId)) continue;
+        opts.push({ label: `${d.nameZh}（${p.name}）`, value: JSON.stringify({ pid: p.id, uid: c.uid }) });
+      }
+    }
+    return opts;
+  }
+
+  destroyAnyOptions(byId: string, excludePids: string[] = []): ChoiceOption[] {
+    const opts: ChoiceOption[] = [];
+    for (const p of this.s.players) {
+      if (excludePids.includes(p.id)) continue;
+      for (const c of p.stable) {
+        const d = this.defOf(c.uid)!;
+        if (!this.destroyable(p.id, c.uid, byId)) continue;
+        opts.push({ label: `${d.nameZh}（${p.name}）`, value: JSON.stringify({ pid: p.id, uid: c.uid }) });
+      }
+    }
+    return opts;
+  }
+
   destroyUnicorn(res: Resolution | null, byId: string, uid: string): boolean {
     const loc = this.locateStableCard(uid);
     if (!loc) return false;

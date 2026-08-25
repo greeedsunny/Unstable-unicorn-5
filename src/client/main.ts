@@ -117,7 +117,14 @@ function initHome(): void {
     toast('邀請連結已複製！');
   };
   $('#btn-start').onclick = () => send({ t: 'start' });
-  $('#btn-leave-lobby').onclick = () => location.reload();
+  $('#btn-leave-lobby').onclick = () => {
+    localStorage.removeItem('uu-room');
+    localStorage.removeItem('uu-seat');
+    sessionStorage.removeItem('uu-seat');
+    history.replaceState(null, '', location.pathname);
+    try { S.ws?.close(); } catch {}
+    location.reload();
+  };
 }
 
 function saveName(): boolean {
@@ -319,12 +326,19 @@ function renderOpponents(players: PublicPlayer[], turn: number): void {
       <h4><span>${p.isHost ? '👑 ' : ''}${escapeHtml(p.name)}</span>
       <span class="uni-count">🦄 ${p.unicornCount}</span></h4>
       <div class="stable-strip"></div>
+      <div class="attach-strip"></div>
       <div class="hand-note">🖐️ ${p.handCount} 張${p.handPublic && p.hand ? `：<span class="pub-hand"></span>` : ''}</div>`;
     const strip = div.querySelector('.stable-strip')!;
-    for (const c of [...attaches.slice(0, 6), ...unicorns]) {
+    for (const c of unicorns) {
       const cel = cardEl(c.uid, true);
       applyCardSelectable(cel, c.uid, true);
       strip.appendChild(cel);
+    }
+    const aStrip = div.querySelector('.attach-strip')!;
+    for (const c of attaches) {
+      const ael = cardEl(c.uid, true);
+      applyCardSelectable(ael, c.uid, true);
+      aStrip.appendChild(ael);
     }
     if (p.handPublic && p.hand) {
       const pub = div.querySelector('.pub-hand')!;
@@ -521,6 +535,7 @@ function renderPrompt(v: ServerView): void {
 function attachCardTipToButton(b: HTMLButtonElement, value: unknown): void {
   let defId: string | null = null;
   if (typeof value === 'string' && /#\d+$/.test(value)) defId = value.split('#')[0]!;
+  else if (typeof value === 'string' && CARD_MAP.has(value)) defId = value;
   else {
     try {
       const parsed = JSON.parse(String(value)) as { uid?: string } | null;

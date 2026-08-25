@@ -16,7 +16,7 @@ import {
 export const MAGIC_HANDLERS: Record<string, Handler> = {
   'magic_unicorn-poison': (e, res) => {
     if (!('t' in res.data)) {
-      e.ask(res, 't', { playerId: res.playerId, title: '獨角獸毒藥：選擇一隻獨角獸消滅', options: e.unicornOptionsAny() });
+      e.ask(res, 't', { playerId: res.playerId, title: '獨角獸毒藥：選擇一隻獨角獸消滅', options: e.destroyUnicornOptions(res.playerId) });
       return;
     }
     const c = e.parseStableChoice(res.data.t)!;
@@ -38,7 +38,7 @@ export const MAGIC_HANDLERS: Record<string, Handler> = {
       e.sacrificeCard(res.playerId, String(res.data.sac));
     }
     if (!('d1' in res.data)) {
-      const opts = stableAnyCards(e);
+      const opts = destroyAnyOptions(e, res.playerId);
       if (opts.length === 0) {
         e.finishMagicDiscard(res);
         e.done(res);
@@ -56,7 +56,7 @@ export const MAGIC_HANDLERS: Record<string, Handler> = {
       res.data.k1 = 1;
     }
     if (!('d2' in res.data)) {
-      const opts = stableAnyCards(e);
+      const opts = destroyAnyOptions(e, res.playerId);
       if (opts.length === 0) {
         e.finishMagicDiscard(res);
         e.done(res);
@@ -314,8 +314,9 @@ export const MAGIC_HANDLERS: Record<string, Handler> = {
       if (src) pile.push(src);
       shuffleLocal(pile, e.consumeRand());
       e.s.deck.unshift(...pile);
+      e.log(`洗牌：棄牌堆 ${pile.length} 張（含此卡）已洗入牌庫深處`, 'sys');
       e.drawTo(res.playerId, 5);
-      e.log(`大洗牌！${e.nameOf(res.playerId)} 抽了 5 張牌`, 'play');
+      e.log(`${e.nameOf(res.playerId)} 從牌庫頂抽了 5 張新牌`, 'play');
     }
     e.done(res);
   },
