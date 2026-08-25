@@ -257,7 +257,7 @@ export const CARDS: CardDef[] = [
   {
     id: 'shake-up', name: 'Shake Up', nameZh: '大洗牌',
     type: 'magic', emoji: '🫨', copies: 1,
-    text: '將此卡與棄牌堆一起洗回牌庫，然後抽 5 張牌。',
+    text: '將此卡、你的手牌與棄牌堆全部洗入牌庫，然後抽 5 張牌。',
   },
   {
     id: 'targeted-destruction', name: 'Targeted Destruction', nameZh: '定點破壞',

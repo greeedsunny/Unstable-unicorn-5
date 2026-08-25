@@ -310,11 +310,14 @@ export const MAGIC_HANDLERS: Record<string, Handler> = {
     if (!('done' in res.data)) {
       res.data.done = 1;
       const src = String(res.data.src ?? '');
+      const me = e.player(res.playerId)!;
       const pile = [...e.s.discard.splice(0)];
       if (src) pile.push(src);
+      const handCount = me.hand.length;
+      pile.push(...me.hand.splice(0));
       shuffleLocal(pile, e.consumeRand());
       e.s.deck.unshift(...pile);
-      e.log(`洗牌：棄牌堆 ${pile.length} 張（含此卡）已洗入牌庫深處`, 'sys');
+      e.log(`洗牌：棄牌堆 ${pile.length - handCount} 張＋${e.nameOf(res.playerId)} 的手牌 ${handCount} 張（含此卡）已洗入牌庫深處`, 'sys');
       e.drawTo(res.playerId, 5);
       e.log(`${e.nameOf(res.playerId)} 從牌庫頂抽了 5 張新牌`, 'play');
     }
