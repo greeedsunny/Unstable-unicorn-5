@@ -6,7 +6,7 @@ import { CARD_IMG, TYPE_IMG } from './custom-art';
 // ── 狀態 ─────────────────────────────────────────────────
 const S = {
   ws: null as WebSocket | null,
-  seat: localStorage.getItem('uu-seat') ?? '',
+  seat: sessionStorage.getItem('uu-seat') ?? localStorage.getItem('uu-seat') ?? '',
   room: localStorage.getItem('uu-room') ?? '',
   view: null as ServerView | null,
   sacrificeMode: false,
@@ -34,6 +34,7 @@ function toast(msg: string, err = false): void {
 function connect(room: string): void {
   S.room = room.toUpperCase();
   localStorage.setItem('uu-room', S.room);
+  history.replaceState(null, '', `${location.pathname}?room=${encodeURIComponent(S.room)}`);
   const proto = location.protocol === 'https:' ? 'wss' : 'ws';
   const ws = new WebSocket(`${proto}://${location.host}/api/room/${encodeURIComponent(S.room)}/ws`);
   S.ws = ws;
@@ -55,7 +56,7 @@ function onServer(msg: ServerMsg): void {
       break;
     case 'joined':
       S.seat = msg.seat;
-      localStorage.setItem('uu-seat', msg.seat);
+      sessionStorage.setItem('uu-seat', msg.seat);
       break;
     case 'sync':
       S.view = msg.view;
@@ -76,6 +77,19 @@ function initHome(): void {
   ($('#inp-name') as HTMLInputElement).value = savedName;
   const urlRoom = new URLSearchParams(location.search).get('room');
   if (urlRoom) ($('#inp-code') as HTMLInputElement).value = urlRoom.toUpperCase();
+
+  const savedRoom = localStorage.getItem('uu-room');
+  if (savedRoom && savedName) {
+    const rejoin = document.createElement('button');
+    rejoin.className = 'btn';
+    rejoin.style.marginTop = '10px';
+    rejoin.textContent = `🔁 重新加入房間 ${savedRoom}`;
+    rejoin.onclick = () => {
+      if (!saveName()) return;
+      connect(savedRoom);
+    };
+    ($('.btn-row') as HTMLElement).appendChild(rejoin);
+  }
 
   $('#btn-create').onclick = () => {
     if (!saveName()) return;

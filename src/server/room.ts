@@ -116,6 +116,12 @@ export class Room {
             return;
           }
         } else {
+          for (const c of this.conns.values()) {
+            if (c !== conn && c.seat === seat) {
+              c.seat = null;
+              try { c.ws.close(4000, 'replaced'); } catch {}
+            }
+          }
           eng.reconnectSeat(seat, conn.wsId);
           eng.log(`${eng.nameOf(seat)} 重新連線`);
         }
