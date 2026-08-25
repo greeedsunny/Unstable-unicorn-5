@@ -84,9 +84,6 @@ export class Room {
       this.sendTo(conn, { t: 'sync', view: eng.view(conn.seat) });
     }
     void this.persist();
-    if (eng.s.neighWindow) {
-      void this.state.storage.setAlarm(Date.now() + 26000);
-    }
   }
 
   private seatOf(wsId: string): string | null {
@@ -95,7 +92,6 @@ export class Room {
 
   private async onMessage(conn: Conn, raw: string): Promise<void> {
     const eng = await this.ensureLoaded();
-    eng.expireNeighWindow();
     let msg: ClientMsg;
     try {
       msg = JSON.parse(raw) as ClientMsg;
@@ -179,7 +175,14 @@ export class Room {
   private async onClose(conn: Conn): Promise<void> {
     this.conns.delete(conn.wsId);
     const eng = await this.ensureLoaded();
-    if (conn.seat) eng.dropConnection(conn.wsId);
+    if (conn.seat) {
+      eng.dropConnection(conn.wsId);
+      const w = eng.s.neighWindow;
+      if (w && conn.seat) {
+        w.awaiting = w.awaiting.filter((x) => x !== conn.seat);
+        if (w.awaiting.length === 0) eng.resolveWindow();
+      }
+    }
     this.broadcast();
     if (this.conns.size === 0) {
       await this.state.storage.setAlarm(Date.now() + 10 * 60 * 1000);
@@ -187,16 +190,7 @@ export class Room {
   }
 
   async alarm(): Promise<void> {
-    if (this.conns.size > 0) {
-      const eng = await this.ensureLoaded();
-      eng.expireNeighWindow();
-      if (eng.s.neighWindow) {
-        await this.state.storage.setAlarm(Date.now() + 3000);
-        return;
-      }
-      this.broadcast();
-      return;
-    }
+    if (this.conns.size > 0) return;
     await this.state.storage.deleteAlarm();
     await this.state.storage.deleteAll();
     this.loaded = false;

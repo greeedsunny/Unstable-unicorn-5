@@ -53,16 +53,17 @@
         <button id="btn-open-chat" class="btn small">💬</button>
       </header>
 
-      <div id="opponents"></div>
-
-      <main id="table-mid">
-        <aside id="log-panel"><h3>📜 戰報</h3><div id="log-list"></div></aside>
-        <div id="center-piles">
-          <div class="pile deck-pile" title="牌庫"></div>
-          <div class="pile discard-pile" id="discard-show" title="棄牌堆頂"></div>
-          <div class="pile nursery-pile" title="育嬰室"></div>
-        </div>
-      </main>
+      <div id="main-row">
+        <section id="opponents"></section>
+        <aside id="right-sidebar">
+          <div id="center-piles">
+            <div class="pile deck-pile" title="牌庫"></div>
+            <div class="pile discard-pile" id="discard-show" title="點擊檢視棄牌堆"></div>
+            <div class="pile nursery-pile" title="育嬰室"></div>
+          </div>
+          <aside id="log-panel"><h3>📜 戰報</h3><div id="log-list"></div></aside>
+        </aside>
+      </div>
 
       <section id="my-area">
         <div id="my-stable-wrap">

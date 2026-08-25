@@ -320,15 +320,6 @@ export class Engine {
     return null;
   }
 
-  expireNeighWindow(): void {
-    const w = this.s.neighWindow;
-    if (!w || !w.openedAt) return;
-    if (Date.now() - w.openedAt < 25000) return;
-    this.log('超過 25 秒無人回應，自動全部通過', 'sys');
-    w.awaiting = [];
-    this.resolveWindow();
-  }
-
   neighResponse(playerId: string, uid?: string): string | null {
     const w = this.s.neighWindow;
     if (!w) return '目前沒有可回應的卡';
