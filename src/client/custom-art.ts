@@ -76,6 +76,17 @@ export const CARD_IMG: Record<string, string> = {
   'neigh': 'https://i.postimg.cc/NMLWmYkm/neigh.jpg',
   'super-neigh': 'https://i.postimg.cc/NMLWmYk1/UU-Ch-Co-001.png',
 
+  'ancestor-unicorn': 'https://i.postimg.cc/Z5kPWNVx/Ancestor-Unicorn.png',
+  'archangel-unicorn': 'https://i.postimg.cc/sgFPMWw8/Archangel-Unicorn.png',
+  'chronocorn': 'https://i.postimg.cc/vZR74n3K/Chronocorn.png',
+  'elusive-oceloticorn': 'https://i.postimg.cc/DwVQSGBM/Elusive-Oceloticorn.png',
+  'game-master-unicorn': 'https://i.postimg.cc/6psV8ZYj/Game-Master-Unicorn.png',
+  'nine-tailed-foxicorn': 'https://i.postimg.cc/Jzw3sXpV/Nine-Tailed-Foxicorn.png',
+  'rad-scientist-unicorn': 'https://i.postimg.cc/nh8KXm3J/The-Rad-Scientist-Unicorn.png',
+  'time-shifting-unicorn': 'https://i.postimg.cc/2Spd1W0Y/Time-Shifting-Unicorn.jpg',
+  'unicorn-of-conniving-artistry': 'https://i.postimg.cc/mgx3P9mR/Unicorn-of-Conniving-Artistry.png',
+  'unicorn-of-glory': 'https://i.postimg.cc/SxW6CKv5/Unicorn-of-Glory.png',
+
   'baby-green': 'https://i.postimg.cc/2SCRJjyy/babygreen.jpg',
   'baby-narwhal': 'https://i.postimg.cc/Mpz24ZHn/babynarwhal.jpg',
   'baby-orange': 'https://i.postimg.cc/vZGFj8Tc/babyorange.jpg',

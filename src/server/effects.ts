@@ -133,10 +133,15 @@ export const HANDLERS: Record<string, Handler> = {
       e.ask(res, 'tgt', { playerId: res.playerId, title: '選擇要掛到誰的馬廄', options: e.playerOptions() });
       return;
     }
-    e.attachTo(String(res.data.tgt), String(res.data.src));
-    const ad = e.defOf(String(res.data.src))!;
-    if (ad.type === 'downgrade' && String(res.data.tgt) !== res.playerId && !e.blindingLighted(String(res.data.tgt)) && e.stableHas(String(res.data.tgt), 'unicorn-of-glory')) {
-      e.pushFront(e.makeRes('glory_search', String(res.data.tgt), {}));
+    if (!('attached' in res.data)) {
+      res.data.attached = 1;
+      e.attachTo(String(res.data.tgt), String(res.data.src));
+      const ad = e.defOf(String(res.data.src))!;
+      if (ad.type === 'downgrade' && String(res.data.tgt) !== res.playerId && !e.blindingLighted(String(res.data.tgt)) && e.stableHas(String(res.data.tgt), 'unicorn-of-glory')) {
+        e.removeRes(res);
+        e.pushFront(e.makeRes('glory_search', String(res.data.tgt), {}));
+        return;
+      }
     }
     e.done(res);
   },
