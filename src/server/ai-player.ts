@@ -23,11 +23,11 @@ export class AIPlayer {
       const ws = new WebSocket(this.roomUrl);
       this.ws = ws;
 
-      ws.onopen = () => {
+      ws.addEventListener('open', () => {
         this.send({ t: 'join', name: this.name });
       };
 
-      ws.onmessage = (ev) => {
+      ws.addEventListener('message', (ev: MessageEvent) => {
         const msg = JSON.parse(ev.data);
         if (msg.t === 'joined') {
           this.seatId = msg.seat;
@@ -41,10 +41,10 @@ export class AIPlayer {
           console.error(`[${this.name}] Error: ${msg.msg}`);
         }
       };
-      ws.onclose = () => {
+      ws.addEventListener('close', () => {
         this.connected = false;
       };
-      ws.onerror = () => {};
+      ws.addEventListener('error', () => {});
       
       setTimeout(() => {
         if (!this.connected) reject(new Error('Connection timeout'));
