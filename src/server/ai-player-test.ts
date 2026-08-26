@@ -111,6 +111,7 @@ export class AIPlayer {
           this.send({ t: 'action', a: 'answer', promptId: prompt.id, values: selected });
         }
         break;
+      }
     }
   }
 

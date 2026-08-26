@@ -1,4 +1,4 @@
-import { CARD_MAP, isUnicorn } from '../shared/cards';
+﻿import { CARD_MAP, isUnicorn } from '../shared/cards';
 import type { Resolution } from '../shared/types';
 import { Engine } from './engine';
 
