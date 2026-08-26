@@ -125,6 +125,38 @@ function initHome(): void {
     try { S.ws?.close(); } catch {}
     location.reload();
   };
+  // Add AI button
+  $('#btn-add-ai').onclick = async () => {
+    if (!S.room) return toast('請先建立或加入房間', true);
+    try {
+      const res = await fetch('/api/add-ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: `AI-${Date.now().toString(36)}` })
+      });
+      const data = await res.json();
+      if (data.success) toast(`已加入 AI：${data.aiName}`);
+      else toast(data.msg || '加入失敗', true);
+    } catch (e) {
+      toast('新增 AI 失敗', true);
+    }
+  };
+  // Add AI button
+  $('#btn-add-ai').onclick = async () => {
+    if (!S.room) return toast('請先建立或加入房間', true);
+    try {
+      const res = await fetch(`/api/add-ai`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: `AI-${Date.now().toString(36)}` })
+      });
+      const data = await res.json();
+      if (data.success) toast(`已加入 AI：${data.aiName}`);
+      else toast(data.msg || '加入失敗', true);
+    } catch (e) {
+      toast('新增 AI 失敗', true);
+    }
+  };
 }
 
 function saveName(): boolean {
@@ -643,22 +675,24 @@ function renderNeighBar(v: ServerView): void {
 }
 
 function renderEndBanner(v: ServerView): void {
-  document.querySelector('.win-banner')?.remove();
-  if (v.state.phase !== 'ended') return;
-  const winner = v.state.players.find((p) => p.id === v.state.winner);
-  const div = document.createElement('div');
-  div.className = 'win-banner';
-  const isMe = winner?.id === v.youId;
-  div.innerHTML = `
-    <div class="confetti">🎉🦄🎉</div>
-    <h1>${winner ? `${escapeHtml(winner.name)} ${isMe ? '贏了！！' : '獲勝！'}` : '沒有人獲勝'}</h1>
-    <p>${isMe ? '你的馬廄閃閃發光 ✨' : winner ? `率先湊齊 ${v.state.winTarget} 隻獨角獸！` : ''}</p>
-    <div class="btn-row">
-      <button class="btn primary" id="btn-again">🏠 回到主畫面（開新遊戲）</button>
-    </div>`;
-  document.body.appendChild(div);
-  div.querySelector('#btn-again')!.addEventListener('click', () => abortAndGoHome());
-}
+    document.querySelector('.win-banner')?.remove();
+    if (v.state.phase !== 'ended') return;
+    const winner = v.state.players.find((p) => p.id === v.state.winner);
+    const div = document.createElement('div');
+    div.className = 'win-banner';
+    const isMe = winner?.id === v.youId;
+    div.innerHTML = `
+      <div class="confetti">🎉🦄🎉</div>
+      <h1>${winner ? `${escapeHtml(winner.name)} ${isMe ? '贏了！！' : '獲勝！'}` : '沒有人獲勝'}</h1>
+      <p>${isMe ? '你的馬廄閃閃發光 ✨' : winner ? `率先湊齊 ${v.state.winTarget} 隻獨角獸！` : ''}</p>
+      <div class="btn-row">
+        <button class="btn primary" id="btn-restart">🔄 再來一局（同房間）</button>
+        <button class="btn secondary" id="btn-home">🏠 回到主畫面</button>
+      </div>`;
+    document.body.appendChild(div);
+    div.querySelector('#btn-restart')!.addEventListener('click', () => send({ t: 'action', a: 'restart' }));
+    div.querySelector('#btn-home')!.addEventListener('click', () => abortAndGoHome());
+  }
 
 // ── 可愛風提示框 ─────────────────────────────────────────
 const tipBox = document.createElement('div');
