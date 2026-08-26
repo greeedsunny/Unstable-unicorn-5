@@ -1,5 +1,5 @@
 import { CARD_MAP, isUnicorn } from '../shared/cards';
-import type { CardDef, Resolution } from '../shared/types';
+import type { Resolution } from '../shared/types';
 import { Engine } from './engine';
 
 export class AIPlayer {
@@ -10,6 +10,7 @@ export class AIPlayer {
   private token: string;
   private connected = false;
   private gameState: any = null;
+  private errs: string[] = [];
 
   constructor(name: string, roomUrl: string, token: string) {
     this.name = name;
@@ -28,10 +29,10 @@ export class AIPlayer {
 
       ws.addEventListener('message', (ev: MessageEvent) => {
         const msg = JSON.parse(ev.data);
-        if (msg.t === 'joined') this.seatId = m.seat;
-        if (msg.t === 'error') this.errs.push(m.msg);
+        if (msg.t === 'joined') this.seatId = msg.seat;
+        if (msg.t === 'error') this.errs.push(msg.msg);
         if (msg.t === 'sync') {
-          this.lastView = m.view;
+          this.gameState = msg.view;
           if (this.onSync) this.onSync();
         }
       });
@@ -96,13 +97,13 @@ export class AIPlayer {
     if (!me) return;
 
     switch (prompt.kind) {
-      case 'choice':
+      case 'choice': {
         const validOption = prompt.options.find((o: any) => this.isValidChoice(prompt, o.value));
         if (validOption) {
           this.send({ t: 'action', a: 'answer', promptId: prompt.id, values: [validOption.value] });
         }
         break;
-      case 'multi':
+      case 'multi': {
         const validOpts = prompt.options.filter((o: any) => this.isValidChoice(prompt, o.value));
         const toPick = Math.min(prompt.max ?? prompt.options.length, Math.max(1, prompt.min ?? 1));
         const selected = validOpts.slice(0, toPick).map((o: any) => o.value);
