@@ -259,13 +259,6 @@ function renderLobby(players: PublicPlayer[]): void {
   });
   const me = players.find((p) => p.id === S.seat);
   ($('#btn-start') as HTMLButtonElement).disabled = !me?.isHost || players.length < 2;
-  const aiBtn = $('#btn-add-ai') as HTMLButtonElement;
-  aiBtn.classList.toggle('hidden', !me?.isHost || st_phase_lobby_full(players));
-  aiBtn.onclick = () => send({ t: 'action', a: 'add_ai' });
-}
-
-function st_phase_lobby_full(players: PublicPlayer[]): boolean {
-  return players.length >= 8;
 }
 
 function cardEl(uid: string, mini = false): HTMLDivElement {
