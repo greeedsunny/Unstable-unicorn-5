@@ -102,6 +102,7 @@ export const HANDLERS: Record<string, Handler> = {
       if (info.by === p.id) {
         e.moveUnicorn(p.id, uid, info.home, '套索到期，歸還');
         delete e.s.lasso![uid];
+        e.tryEntryEffect(info.home, uid);
       }
     }
     const limit = 7 + (e.stableHas(p.id, 'game-master-unicorn') ? 3 : 0);

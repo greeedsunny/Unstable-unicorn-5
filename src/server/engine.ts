@@ -922,6 +922,53 @@ export class Engine {
     return p.id;
   }
 
+  addAISeat(): string | null {
+    if (this.s.phase !== 'lobby') return '遊戲已開始';
+    if (this.s.players.length >= 8) return '房間已滿（最多 8 人）';
+    const n = this.s.players.filter((p) => p.isAI).length + 1;
+    this.s.players.push({
+      id: `seat-ai-${n}`,
+      wsId: null,
+      name: `🤖 AI 獨角獸 ${n}`,
+      hand: [],
+      stable: [],
+      connected: true,
+      isHost: false,
+      isAI: true,
+    });
+    this.log(`🤖 AI 獨角獸 ${n} 加入了房間`);
+    return null;
+  }
+
+  aiAct(pid: string): boolean {
+    if (this.s.phase !== 'playing') return false;
+    const me = this.player(pid);
+    if (!me) return false;
+    const w = this.s.neighWindow;
+    if (w && w.awaiting.includes(pid)) {
+      this.neighResponse(pid);
+      return true;
+    }
+    const pr = this.s.prompt;
+    if (pr && pr.playerId === pid) {
+      let opts = pr.options.filter((o) => o.value !== '__none' && o.label !== '跳過');
+      if (opts.length === 0) opts = pr.options;
+      if (opts.length === 0) return false;
+      if (pr.kind === 'multi') {
+        const need = pr.min ?? pr.max ?? opts.length;
+        this.submitAnswer(pid, opts.slice(0, need).map((o) => o.value));
+        return true;
+      }
+      const playOpt = opts.find((o) => /#\d+$/.test(String(o.value)));
+      const drawOpt = pr.options.find((o) => o.value === '__draw');
+      const pick = playOpt ?? drawOpt;
+      if (!pick) return false;
+      this.submitAnswer(pid, [pick.value]);
+      return true;
+    }
+    return false;
+  }
+
   startGame(): string | null {
     if (this.s.phase !== 'lobby') return '遊戲已經開始';
     if (this.s.players.length < 2) return '至少需要 2 位玩家';
@@ -998,6 +1045,11 @@ export class Engine {
       this.log(`${me.name} 中止了遊戲，所有人回到大廳`, 'sys');
       this.restart();
       return null;
+    }
+    if (act.a === 'add_ai') {
+      const me = this.player(pid);
+      if (!me?.isHost) return '只有房主可以加入 AI';
+      return this.addAISeat();
     }
     if (act.a === 'smoke_give') {
       if (act.token !== 'uu-smoke') return '無效權杖';

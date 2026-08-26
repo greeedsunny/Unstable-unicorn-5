@@ -34,6 +34,7 @@ export interface PlayerState {
   stable: StableCard[];
   connected: boolean;
   isHost: boolean;
+  isAI?: boolean;      // AI 玩家
 }
 
 export type ChoiceOption = {

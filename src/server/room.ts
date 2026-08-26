@@ -11,6 +11,29 @@ export class Room {
   private engine: Engine | null = null;
   private loaded = false;
   private conns = new Map<string, Conn>();
+  private aiTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private scheduleAI(): void {
+    const eng = this.engine;
+    if (!eng || !eng.s.players.some((p) => p.isAI)) return;
+    if (this.aiTimer) return;
+    this.aiTimer = setTimeout(() => {
+      this.aiTimer = null;
+      void this.tickAI();
+    }, 800);
+  }
+
+  private async tickAI(): Promise<void> {
+    const eng = await this.ensureLoaded();
+    if (!eng || eng.s.phase !== 'playing') return;
+    for (const p of eng.s.players) {
+      if (!p.isAI) continue;
+      if (eng.aiAct(p.id)) {
+        this.broadcast();
+        return;
+      }
+    }
+  }
 
   constructor(private state: DurableObjectState) {}
 
@@ -84,6 +107,7 @@ export class Room {
       this.sendTo(conn, { t: 'sync', view: eng.view(conn.seat) });
     }
     void this.persist();
+    this.scheduleAI();
   }
 
   private seatOf(wsId: string): string | null {
@@ -145,6 +169,12 @@ export class Room {
       case 'action': {
         const seat = conn.seat;
         if (!seat) return;
+        if ((msg as unknown as { a?: string }).a === 'add_ai') {
+          const err = eng.handleAction(seat, { a: 'add_ai' });
+          if (err) this.sendTo(conn, { t: 'error', msg: err });
+          this.broadcast();
+          return;
+        }
         const err = eng.handleAction(seat, msg as unknown as { a: string; uid?: string; promptId?: string; values?: unknown[] });
         if (err) this.sendTo(conn, { t: 'error', msg: err });
         this.broadcast();
